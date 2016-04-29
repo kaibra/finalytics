@@ -10,9 +10,11 @@
   (c/GET "/example1" []
     {:status 200
      :body   (hic/html5
-               [:head (hic/include-js "js/main.js")]
+               [:head (hic/include-js "js/main.js")
+                [:meta {:http-equiv "content-type"
+                        :content    "text/html; charset=UTF8"}]]
                [:body
-                [:h1 "HIIC  CHAJB"]]
+                [:h1 "H IIC  CHAJB"]]
                )}))
 
 (defstate server
