@@ -59,7 +59,7 @@
 
 (deftest read-data-spec
   (testing "should read the data-spec"
-    (let [data-spec (csv-pars/read-data-spec "test-resources/data-spec/data-spec.edn" )]
+    (let [data-spec (csv-pars/load-data-spec "test-resources/data-spec/data-spec.edn")]
       (is (= [[:a {:type   :date
                    :format "dd.MM.yyyy"}]
               [:b {:type   :number

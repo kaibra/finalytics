@@ -25,5 +25,5 @@
 (defstate server
           :start (httpk/start-server
                    (croute/resources "/")
-                   (page-route-for "/overview" overview/page-content))
+                   (page-route-for "/" overview/page-content))
           :stop (httpk/stop-server server))

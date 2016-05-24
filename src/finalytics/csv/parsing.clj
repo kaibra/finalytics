@@ -55,6 +55,6 @@
           (into {}))
     csv-data))
 
-(defn read-data-spec [data-spec-file]
+(defn load-data-spec [data-spec-file]
   (->> (slurp data-spec-file)
        (edn/read-string {:readers {'locale eval}})))
