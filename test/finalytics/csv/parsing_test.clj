@@ -1,7 +1,9 @@
 (ns finalytics.csv.parsing-test
   (:require [clojure.test :refer :all]
             [finalytics.csv.parsing :as csv-pars]
-            [clojure.java.io :as io]))
+            [clj-time.core :as t]
+            [clojure.java.io :as io])
+  (:import (java.util Locale)))
 
 (deftest reading-csv-file
   (testing "should read a single csv-file"
@@ -35,5 +37,21 @@
               {:a "fooo"
                :b "barr"
                :c "bazz"}]
-             (csv-pars/with-named-columns csv-data
-                                          [:a :b :c]))))))
+             (csv-pars/with-columns csv-data
+                                    [:a :b :c]))))))
+
+(deftest to-special-columns
+  (testing "should build up columns from column-spec"
+    (let [csv-data (csv-pars/load-csv "test-resources/csv-special-data")]
+      (is (= [{:a (t/date-time 2016 5 18)
+               :b -16.13
+               :c "foo"}
+              {:a (t/date-time 2016 5 12)
+               :b 100000.1122
+               :c "bar"}]
+             (csv-pars/with-columns csv-data
+                                    [[:a {:type   :date
+                                          :format "dd.MM.yyyy"}]
+                                     [:b {:type   :number
+                                          :locale Locale/GERMAN}]
+                                     :c]))))))
