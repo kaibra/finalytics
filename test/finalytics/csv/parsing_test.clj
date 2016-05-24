@@ -45,13 +45,14 @@
     (let [csv-data (csv-pars/load-csv "test-resources/csv-special-data")]
       (is (= [{:a (t/date-time 2016 5 18)
                :b -16.13
-               :c "foo"}
+               :d "baz"}
               {:a (t/date-time 2016 5 12)
                :b 100000.1122
-               :c "bar"}]
+               :d "baf"}]
              (csv-pars/with-columns csv-data
                                     [[:a {:type   :date
                                           :format "dd.MM.yyyy"}]
                                      [:b {:type   :number
                                           :locale Locale/GERMAN}]
-                                     :c]))))))
+                                     nil
+                                     :d]))))))

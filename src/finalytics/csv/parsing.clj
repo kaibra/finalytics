@@ -37,16 +37,16 @@
        (recur (rest all-files) (into lines (read-csv-lines (first all-files))))))))
 
 (defn- to-column [column-spec content]
-  (if-not (vector? column-spec)
-    [column-spec content]
-    (let [[column-name {:keys [type format locale]}] column-spec]
-      (case type
-        :number [column-name (-> (NumberFormat/getInstance locale)
-                                 (.parse content)
-                                 (.doubleValue))]
-        :string [column-name content]
-        :date [column-name (f/parse (f/formatter format) content)]
-        ))))
+  (when-not (nil? column-spec)
+    (if-not (vector? column-spec)
+      [column-spec content]
+      (let [[column-name {:keys [type format locale]}] column-spec]
+        (case type
+          :number [column-name (-> (NumberFormat/getInstance locale)
+                                   (.parse content)
+                                   (.doubleValue))]
+          :string [column-name content]
+          :date [column-name (f/parse (f/formatter format) content)])))))
 
 (defn with-columns [csv-data column-names]
   (map
