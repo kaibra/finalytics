@@ -56,3 +56,21 @@
                                           :locale Locale/GERMAN}]
                                      nil
                                      :d]))))))
+
+(deftest read-data-spec
+  (testing "should read the data-spec"
+    (let [data-spec (csv-pars/read-data-spec "test-resources/data-spec/data-spec.edn" )]
+      (is (= [[:a {:type   :date
+                   :format "dd.MM.yyyy"}]
+              [:b {:type   :number
+                   :locale java.util.Locale/GERMAN}]
+              nil
+              :d]
+             data-spec))
+      (is (= [{:a (t/date-time 2016 5 18)
+               :b -16.13
+               :d "baz"}
+              {:a (t/date-time 2016 5 12)
+               :b 100000.1122
+               :d "baf"}]
+             (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec))))))

@@ -1,7 +1,8 @@
 (ns finalytics.csv.parsing
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [clj-time.format :as f])
+            [clj-time.format :as f]
+            [clojure.edn :as edn])
   (:import (java.text NumberFormat)))
 
 (defn read-csv-lines [csv-file]
@@ -53,3 +54,7 @@
     #(->> (map to-column column-names %)
           (into {}))
     csv-data))
+
+(defn read-data-spec [data-spec-file]
+  (->> (slurp data-spec-file)
+       (edn/read-string {:readers {'locale eval}})))

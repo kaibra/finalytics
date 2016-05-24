@@ -1,0 +1,6 @@
+[[:a {:type   :date
+      :format "dd.MM.yyyy"}]
+ [:b {:type   :number
+      :locale #locale java.util.Locale/GERMAN}]
+ nil
+ :d]
