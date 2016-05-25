@@ -63,7 +63,9 @@
 (deftest read-data-spec
   (let [data-spec (csv-pars/load-data-spec "test-resources/data-spec/data-spec.edn")
         tid-spec (csv-pars/load-tid-spec "test-resources/data-spec/tid-spec.edn")
-        with-cols (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec)]
+        class-spec (csv-pars/load-class-spec "test-resources/data-spec/class-spec.edn")
+        with-cols (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec)
+        with-tids (csv-pars/with-tids with-cols tid-spec :d)]
     (testing "should read the data-spec"
       (is (= [[:a {:type   :date
                    :format "dd.MM.yyyy"}]
@@ -104,4 +106,26 @@
               {:columns {:a (t/date-time 2016 5 10)
                          :b -100.11
                          :d "unknown-stuff"}}]
-             (csv-pars/with-tids with-cols tid-spec :d))))))
+             with-tids)))
+
+    (testing "should read the class-spec"
+      (is (= {:food [:clienta
+                     :clientb]
+              :gas  [:clienta]}
+             class-spec)))
+
+    (testing "should apply the class-spec for classification"
+      (is (= [{:tid     :clienta
+               :classifications [:gas :food]
+               :columns {:a (t/date-time 2016 5 18)
+                         :b -16.13
+                         :d "Thank you says clienta"}}
+              {:tid     :clientb
+               :classifications [:food]
+               :columns {:a (t/date-time 2016 5 12)
+                         :b 100000.1122
+                         :d "This is a clientb transaction"}}
+              {:columns {:a (t/date-time 2016 5 10)
+                         :b -100.11
+                         :d "unknown-stuff"}}]
+             (csv-pars/with-classification with-tids class-spec))))))

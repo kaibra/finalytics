@@ -80,3 +80,23 @@
 
 (defn with-tids [csv-data tid-specs tid-col]
   (map (partial tid-transaction tid-specs tid-col) csv-data))
+
+(defn load-class-spec [file-path]
+  (edn/read-string (slurp file-path)))
+
+(defn classify-transaction [[classification-name tids] {:keys [tid] :as transaction}]
+  (if (some #(= tid %) tids)
+    (update transaction :classifications conj classification-name)
+    transaction))
+
+(defn fully-classified-transaction [class-spec transaction]
+  (loop [specs class-spec
+         t transaction]
+    (if (empty? specs)
+      t
+      (recur (rest specs) (classify-transaction (first specs) t)))))
+
+(defn with-classification [csv-data class-spec]
+  (map
+    (partial fully-classified-transaction class-spec)
+    csv-data))
