@@ -31,24 +31,27 @@
 (deftest to-named-columns
   (testing "should build up named columns from parsed csv-data"
     (let [csv-data (csv-pars/load-csv "test-resources/csv-data")]
-      (is (= [{:a "foo"
-               :b "bar"
-               :c "baz"}
-              {:a "fooo"
-               :b "barr"
-               :c "bazz"}]
+      (is (= [{:columns {:a "foo"
+                         :b "bar"
+                         :c "baz"}}
+              {:columns {:a "fooo"
+                         :b "barr"
+                         :c "bazz"}}]
              (csv-pars/with-columns csv-data
                                     [:a :b :c]))))))
 
 (deftest to-special-columns
   (testing "should build up columns from column-spec"
     (let [csv-data (csv-pars/load-csv "test-resources/csv-special-data")]
-      (is (= [{:a (t/date-time 2016 5 18)
-               :b -16.13
-               :d "baz"}
-              {:a (t/date-time 2016 5 12)
-               :b 100000.1122
-               :d "baf"}]
+      (is (= [{:columns {:a (t/date-time 2016 5 18)
+                         :b -16.13
+                         :d "Thank you says clienta"}}
+              {:columns {:a (t/date-time 2016 5 12)
+                         :b 100000.1122
+                         :d "This is a clientb transaction"}}
+              {:columns {:a (t/date-time 2016 5 10)
+                         :b -100.11
+                         :d "unknown-stuff"}}]
              (csv-pars/with-columns csv-data
                                     [[:a {:type   :date
                                           :format "dd.MM.yyyy"}]
@@ -58,19 +61,47 @@
                                      :d]))))))
 
 (deftest read-data-spec
-  (testing "should read the data-spec"
-    (let [data-spec (csv-pars/load-data-spec "test-resources/data-spec/data-spec.edn")]
+  (let [data-spec (csv-pars/load-data-spec "test-resources/data-spec/data-spec.edn")
+        tid-spec (csv-pars/load-tid-spec "test-resources/data-spec/tid-spec.edn")
+        with-cols (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec)]
+    (testing "should read the data-spec"
       (is (= [[:a {:type   :date
                    :format "dd.MM.yyyy"}]
               [:b {:type   :number
                    :locale java.util.Locale/GERMAN}]
               nil
               :d]
-             data-spec))
-      (is (= [{:a (t/date-time 2016 5 18)
-               :b -16.13
-               :d "baz"}
-              {:a (t/date-time 2016 5 12)
-               :b 100000.1122
-               :d "baf"}]
-             (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec))))))
+             data-spec)))
+
+    (testing "should build up columns"
+      (is (= [{:columns {:a (t/date-time 2016 5 18)
+                         :b -16.13
+                         :d "Thank you says clienta"}}
+              {:columns {:a (t/date-time 2016 5 12)
+                         :b 100000.1122
+                         :d "This is a clientb transaction"}}
+              {:columns {:a (t/date-time 2016 5 10)
+                         :b -100.11
+                         :d "unknown-stuff"}}]
+             (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec))))
+
+    (testing "should load the tid file"
+      (is (= {"^.*clienta.*" :clienta
+              "^.*clientb.*" :clientb}
+             (->> tid-spec
+                  (map (fn [[a b]] [(.toString a) b]))
+                  (into {})))))
+
+    (testing "should build up tids"
+      (is (= [{:tid     :clienta
+               :columns {:a (t/date-time 2016 5 18)
+                         :b -16.13
+                         :d "Thank you says clienta"}}
+              {:tid     :clientb
+               :columns {:a (t/date-time 2016 5 12)
+                         :b 100000.1122
+                         :d "This is a clientb transaction"}}
+              {:columns {:a (t/date-time 2016 5 10)
+                         :b -100.11
+                         :d "unknown-stuff"}}]
+             (csv-pars/with-tids with-cols tid-spec :d))))))

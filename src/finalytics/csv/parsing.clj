@@ -49,12 +49,34 @@
           :string [column-name content]
           :date [column-name (f/parse (f/formatter format) content)])))))
 
-(defn with-columns [csv-data column-names]
-  (map
-    #(->> (map to-column column-names %)
-          (into {}))
-    csv-data))
-
 (defn load-data-spec [data-spec-file]
   (->> (slurp data-spec-file)
        (edn/read-string {:readers {'locale eval}})))
+
+(defn load-tid-spec [file-path]
+  (->> (edn/read-string (slurp file-path))
+      (map (fn [[pattern classification]] [(re-pattern pattern) classification]))
+      (into {})))
+
+
+(def col-key :columns)
+(def tid-key :tid)
+
+(defn with-columns [csv-data column-names]
+  (map
+    (fn [transaction]
+      {col-key (->> (map to-column column-names transaction) (into {}))})
+    csv-data))
+
+(defn tid-transaction [tid-specs tid-col transaction]
+  (let [ct-val (get-in transaction [col-key tid-col])]
+    (loop [specs tid-specs]
+      (if (empty? specs)
+        transaction
+        (let [[c-pattern classification-name] (first specs)]
+          (if-not (nil? (re-matches c-pattern ct-val))
+            (assoc transaction :tid classification-name)
+            (recur (rest specs))))))))
+
+(defn with-tids [csv-data tid-specs tid-col]
+  (map (partial tid-transaction tid-specs tid-col) csv-data))
