@@ -9,7 +9,7 @@
   (testing "should read a single csv-file"
     (is (= ["\"foo  \"  ;\"bar  \";\"   baz\""
             "\"fooo  \"; \" barr\";\"bazz\""]
-           (csv-pars/read-csv-lines (io/file "test-resources/csv-data/csvb.csv"))))))
+           (csv-pars/read-csv-lines (io/file "test-resources/data/csv-a/csv2.csv"))))))
 
 (deftest parsing-csv-data-set
   (testing "should parse a single csv-data line"
@@ -26,11 +26,11 @@
   (testing "should load and merge multiple csv-files"
     (is (= [["foo" "bar" "baz"]
             ["fooo" "barr" "bazz"]]
-           (csv-pars/load-csv "test-resources/csv-data")))))
+           (csv-pars/load-csv "test-resources/data/csv-a")))))
 
 (deftest to-named-columns
   (testing "should build up named columns from parsed csv-data"
-    (let [csv-data (csv-pars/load-csv "test-resources/csv-data")]
+    (let [csv-data (csv-pars/load-csv "test-resources/data/csv-a")]
       (is (= [{:columns {:a "foo"
                          :b "bar"
                          :c "baz"}}
@@ -42,7 +42,7 @@
 
 (deftest to-special-columns
   (testing "should build up columns from column-spec"
-    (let [csv-data (csv-pars/load-csv "test-resources/csv-special-data")]
+    (let [csv-data (csv-pars/load-csv "test-resources/data/csv-b")]
       (is (= [{:columns {:a (t/date-time 2016 5 18)
                          :b -16.13
                          :d "Thank you says clienta"}}
@@ -60,12 +60,15 @@
                                      nil
                                      :d]))))))
 
-(deftest read-data-spec
-  (let [data-spec (csv-pars/load-data-spec "test-resources/data-spec/data-spec.edn")
-        tid-spec (csv-pars/load-tid-spec "test-resources/data-spec/tid-spec.edn")
-        class-spec (csv-pars/load-class-spec "test-resources/data-spec/class-spec.edn")
-        with-cols (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec)
-        with-tids (csv-pars/with-tids with-cols tid-spec :d)]
+(deftest reading-csv-data
+  (let [classification-column :d
+        columns-spec (csv-pars/load-columns-spec "test-resources/data/spec/columns.edn")
+        tids-spec (csv-pars/load-tid-spec "test-resources/data/spec/tids.edn")
+        classifications-spec (csv-pars/load-class-spec "test-resources/data/spec/classifications.edn")
+        csv-with-cols (csv-pars/with-columns (csv-pars/load-csv "test-resources/data/csv-b") columns-spec)
+        csv-with-tids (csv-pars/with-tids csv-with-cols tids-spec classification-column)
+        csv-with-classifications (csv-pars/with-classification csv-with-tids classifications-spec)]
+
     (testing "should read the data-spec"
       (is (= [[:a {:type   :date
                    :format "dd.MM.yyyy"}]
@@ -73,7 +76,7 @@
                    :locale java.util.Locale/GERMAN}]
               nil
               :d]
-             data-spec)))
+             columns-spec)))
 
     (testing "should build up columns"
       (is (= [{:columns {:a (t/date-time 2016 5 18)
@@ -85,12 +88,12 @@
               {:columns {:a (t/date-time 2016 5 10)
                          :b -100.11
                          :d "unknown-stuff"}}]
-             (csv-pars/with-columns (csv-pars/load-csv "test-resources/csv-special-data") data-spec))))
+             csv-with-cols)))
 
     (testing "should load the tid file"
       (is (= {"^.*clienta.*" :clienta
               "^.*clientb.*" :clientb}
-             (->> tid-spec
+             (->> tids-spec
                   (map (fn [[a b]] [(.toString a) b]))
                   (into {})))))
 
@@ -106,26 +109,26 @@
               {:columns {:a (t/date-time 2016 5 10)
                          :b -100.11
                          :d "unknown-stuff"}}]
-             with-tids)))
+             csv-with-tids)))
 
-    (testing "should read the class-spec"
+    (testing "should read the classifications-spec"
       (is (= {:food [:clienta
                      :clientb]
               :gas  [:clienta]}
-             class-spec)))
+             classifications-spec)))
 
-    (testing "should apply the class-spec for classification"
-      (is (= [{:tid     :clienta
+    (testing "should apply the classifications-spec for classification"
+      (is (= [{:tid             :clienta
                :classifications [:gas :food]
-               :columns {:a (t/date-time 2016 5 18)
-                         :b -16.13
-                         :d "Thank you says clienta"}}
-              {:tid     :clientb
+               :columns         {:a (t/date-time 2016 5 18)
+                                 :b -16.13
+                                 :d "Thank you says clienta"}}
+              {:tid             :clientb
                :classifications [:food]
-               :columns {:a (t/date-time 2016 5 12)
-                         :b 100000.1122
-                         :d "This is a clientb transaction"}}
+               :columns         {:a (t/date-time 2016 5 12)
+                                 :b 100000.1122
+                                 :d "This is a clientb transaction"}}
               {:columns {:a (t/date-time 2016 5 10)
                          :b -100.11
                          :d "unknown-stuff"}}]
-             (csv-pars/with-classification with-tids class-spec))))))
+             csv-with-classifications)))))

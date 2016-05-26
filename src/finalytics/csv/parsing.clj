@@ -49,7 +49,7 @@
           :string [column-name content]
           :date [column-name (f/parse (f/formatter format) content)])))))
 
-(defn load-data-spec [data-spec-file]
+(defn load-columns-spec [data-spec-file]
   (->> (slurp data-spec-file)
        (edn/read-string {:readers {'locale eval}})))
 
