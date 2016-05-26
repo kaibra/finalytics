@@ -17,12 +17,3 @@
 (defn html-response [content]
   {:status 200
    :body   (page-frame content)})
-
-(defn bad-request [message]
-  {:status 400
-   :body   (page-frame
-             [:div {:class "container"}
-              [:div {:class "row"}
-               [:div {:class "col-lg-12"}
-                [:div {:class "alert alert-danger"}
-                 [:strong "Bad Request: " message]]]]])})
