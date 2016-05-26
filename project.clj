@@ -1,7 +1,7 @@
 (defproject finalytics "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [kaibra/mount-ms "0.0.3"]
-                 [kaibra/ms-httpkit "0.0.2"]
+                 [kaibra/ms-httpkit "0.0.3"]
                  [hiccup "1.0.5"]
                  [org.clojure/clojurescript "1.8.51"
                   :exclusions [org.apache.ant/ant]]

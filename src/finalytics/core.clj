@@ -9,7 +9,11 @@
 
 (def custom-states
   [#'server/server
-   #'csv-loader/csv-data])
+   #'csv-loader/csv-data
+   #'csv-loader/spec-folder
+   #'csv-loader/data-folder
+
+   ])
 
 (defn start []
   (apply mount-ms/start-with-states custom-states))

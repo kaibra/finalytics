@@ -2,7 +2,7 @@
 /classes
 /checkouts
 /.idea
-/resources/public/data
+data
 pom.xml
 pom.xml.asc
 *.jar
