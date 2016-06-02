@@ -42,18 +42,3 @@
                                days)])
                           months))])
           date-map)))
-
-(defn- aggregate-transaction-seq [n col]
-  (->> (map #(get-in % [:columns col]) n)
-       (apply +)))
-
-(defn aggregate [date-map col]
-  (clojure.walk/prewalk-demo date-map)
-  (clojure.walk/prewalk
-    (fn [n]
-      (if (and
-            (vector? n)
-            (not (nil? (:columns (first n)))))
-        (aggregate-transaction-seq n col)
-        n))
-    date-map))
