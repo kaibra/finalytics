@@ -2,6 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-time.format :as f]
+            [clj-time.core :as t]
             [clojure.edn :as edn])
   (:import (java.text NumberFormat)))
 
@@ -47,7 +48,10 @@
                                    (.parse content)
                                    (.doubleValue))]
           :string [column-name content]
-          :date [column-name (f/parse (f/formatter format) content)])))))
+          :date [column-name (let [pdate (f/parse (f/formatter format) content)]
+                               {:year (t/year pdate)
+                                :month (t/month pdate)
+                                :day (t/day pdate)})])))))
 
 (defn load-columns-spec [data-spec-file]
   (->> (slurp data-spec-file)

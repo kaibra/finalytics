@@ -43,13 +43,19 @@
 (deftest to-special-columns
   (testing "should build up columns from column-spec"
     (let [csv-data (csv-pars/load-csv "test-resources/data/csv-b")]
-      (is (= [{:columns {:a (t/date-time 2016 5 18)
+      (is (= [{:columns {:a {:year 2016
+                             :month 5
+                             :day 18}
                          :b -16.13
                          :d "Thank you says clienta"}}
-              {:columns {:a (t/date-time 2016 5 12)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 12}
                          :b 100000.1122
                          :d "This is a clientb transaction"}}
-              {:columns {:a (t/date-time 2016 5 10)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 10}
                          :b -100.11
                          :d "unknown-stuff"}}]
              (csv-pars/with-columns csv-data
@@ -79,13 +85,19 @@
              columns-spec)))
 
     (testing "should build up columns"
-      (is (= [{:columns {:a (t/date-time 2016 5 18)
+      (is (= [{:columns {:a {:year 2016
+                             :month 5
+                             :day 18}
                          :b -16.13
                          :d "Thank you says clienta"}}
-              {:columns {:a (t/date-time 2016 5 12)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 12}
                          :b 100000.1122
                          :d "This is a clientb transaction"}}
-              {:columns {:a (t/date-time 2016 5 10)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 10}
                          :b -100.11
                          :d "unknown-stuff"}}]
              csv-with-cols)))
@@ -99,14 +111,20 @@
 
     (testing "should build up tids"
       (is (= [{:tid     :clienta
-               :columns {:a (t/date-time 2016 5 18)
+               :columns {:a {:year 2016
+                             :month 5
+                             :day 18}
                          :b -16.13
                          :d "Thank you says clienta"}}
               {:tid     :clientb
-               :columns {:a (t/date-time 2016 5 12)
+               :columns {:a {:year 2016
+                             :month 5
+                             :day 12}
                          :b 100000.1122
                          :d "This is a clientb transaction"}}
-              {:columns {:a (t/date-time 2016 5 10)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 10}
                          :b -100.11
                          :d "unknown-stuff"}}]
              csv-with-tids)))
@@ -120,15 +138,21 @@
     (testing "should apply the classifications-spec for classification"
       (is (= [{:tid             :clienta
                :classifications [:gas :food]
-               :columns         {:a (t/date-time 2016 5 18)
+               :columns         {:a {:year 2016
+                                     :month 5
+                                     :day 18}
                                  :b -16.13
                                  :d "Thank you says clienta"}}
               {:tid             :clientb
                :classifications [:food]
-               :columns         {:a (t/date-time 2016 5 12)
+               :columns         {:a {:year 2016
+                                     :month 5
+                                     :day 12}
                                  :b 100000.1122
                                  :d "This is a clientb transaction"}}
-              {:columns {:a (t/date-time 2016 5 10)
+              {:columns {:a {:year 2016
+                             :month 5
+                             :day 10}
                          :b -100.11
                          :d "unknown-stuff"}}]
              csv-with-classifications)))))
