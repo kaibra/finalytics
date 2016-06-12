@@ -14,8 +14,9 @@
              :content    "text/html; charset=UTF8"}]]
     [:body
      content
+     [:script (str "var csvdata = " (json/write-str loader/csv-data))]
      (hic/include-js "js/main.js")
-     [:script (str "var csvdata = " (json/write-str loader/csv-data))]]))
+     ]))
 
 (defn html-response [content]
   {:status 200

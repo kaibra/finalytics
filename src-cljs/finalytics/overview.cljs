@@ -1,5 +1,6 @@
 (ns finalytics.overview
-  (:require cljsjs.d3))
+  (:require cljsjs.d3
+            [finalytics.charts.barchart :as bc]))
 
 (enable-console-print!)
 
@@ -7,9 +8,8 @@
 
 (defn register-all-listeners []
   (println "Register all")
-  #_(-> (js/d3.select "#reload-csv")
-        (.on "click" (fn []
+  (println js/csvdata)
 
-                       (js/console.log "FOOO")))))
+  (bc/bar-chart js/csvdata))
 
 (register-all-listeners)

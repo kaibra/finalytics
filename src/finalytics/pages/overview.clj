@@ -37,7 +37,17 @@
 
       [:div {:class "col-lg-6"}
        [:h3 "CSV-stats"]
-       (csv-data-stats)]]]))
+       (csv-data-stats)]]
+
+     [:div {:class "row"}
+      [:div {:class "col-lg-12"}
+       [:div {:class "row"}
+        [:h3 "Chart: "]]
+
+       [:div {:class "row"}
+        [:div {:id "barchart"}]]
+       ]]
+     ]))
 
 (def overview-route "/overview")
 
