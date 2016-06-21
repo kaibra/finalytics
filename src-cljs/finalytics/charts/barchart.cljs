@@ -20,7 +20,8 @@
 (defn append-svg-container [selector [width height]]
   (doto (-> (js/d3.select selector)
             (.append "svg")
-            (.attr "viewBox" (str "0 0 " width " " height)))
+            (.attr "width" width)
+            (.attr "height" height))
     (add-svg-background)))
 
 (defn bind-data [svg-container csv-data]
@@ -57,7 +58,7 @@
         (recur (rest k)
                (str result (str " "current-field ": " (aget d/columns current-field))))))))
 
-(defn append-barchart-rect [single-width half-height yscale start-pos total-height svg-container]
+(defn append-barchart-rect [single-width half-height yscale start-pos svg-container]
   (let [group-container (.append svg-container "g")
         font-size (* single-width (/ 2 3))]
     (-> (.append group-container "rect")
@@ -70,46 +71,24 @@
         (.attr "fill" "white")
         (.attr "font-size" font-size)
         (.attr "transform" (partial bar-chart-text-transformation half-height single-width yscale font-size start-pos))
-        (.html (fn [d _] d/columns.value)))
+        (.html (fn [d _] d/columns.value)))))
 
-    (-> (.append svg-container "text")
-        (.attr "x" 5)
-        (.attr "y" 20)
-        (.attr "id" (fn [_ i] (str "bartext" i)))
-        (.attr "fill" "yellow")
-        (.attr "visibility" "hidden")
-        (.html (fn [d i]
-                 (str "Transaction " i ":"
-                      (transaction-as-single-line d)))))
-
-    #_(-> (.append group-container "rect")
-        (.attr "id" (fn [_ i] (str "bar" i)))
-        (.attr "fill-opacity" "0")
-        (.attr "x" (partial bar-chart-x-val single-width start-pos))
-        (.attr "y" 0)
-        (.attr "width" single-width)
-        (.attr "height" total-height)
-        (.on "mouseover" (fn [_ i]
-                           (-> (js/d3.select (str "#bartext" i))
-                               (.attr "visibility" "visible"))))
-        (.on "mouseout" (fn [_ i]
-                          (-> (js/d3.select (str "#bartext" i))
-                              (.attr "visibility" "hidden")))))))
-
-(defn draw-data [svg-container csv-data total-height & {:keys [data-dim start-pos]}]
+(defn draw-data [svg-container csv-data & {:keys [data-dim start-pos]}]
   (let [[width height] data-dim
         single-width (int (/ width (count csv-data)))
         half-height (int (/ height 2))
         yscale (d3YScale (max-val csv-data) half-height)]
     (-> (bind-data svg-container csv-data)
-        (on-enter (partial append-barchart-rect single-width half-height yscale start-pos total-height)))))
+        (on-enter (partial append-barchart-rect single-width half-height yscale start-pos)))))
 
 (defn bar-chart [csv-data]
-  (let [svg-width 1000
+  (let [bar-width 20
+        svg-width (* (count csv-data) bar-width)
         svg-height 400
         top-bottom-space 100
         svg-container (append-svg-container "#barchart" [svg-width svg-height])]
-    (draw-data svg-container csv-data svg-height
+    (println svg-width)
+    (draw-data svg-container csv-data
                :data-dim [svg-width (- svg-height top-bottom-space)]
                :start-pos [0 (/ top-bottom-space 2)])))
 
