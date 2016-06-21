@@ -104,3 +104,12 @@
   (map
     (partial fully-classified-transaction class-spec)
     csv-data))
+
+(defn load-parsed-csv-data [spec-folder data-folder]
+  (let [col-spec (load-columns-spec (str spec-folder "/columns.edn"))
+        tid-spec (load-tid-spec (str spec-folder "/tids.edn"))
+        class-spec (load-class-spec (str spec-folder "/classifications.edn"))]
+    (-> (load-csv data-folder)
+        (with-columns col-spec)
+        (with-tids tid-spec :client)
+        (with-classification class-spec))))
