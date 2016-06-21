@@ -82,7 +82,7 @@
                  (str "Transaction " i ":"
                       (transaction-as-single-line d)))))
 
-    (-> (.append group-container "rect")
+    #_(-> (.append group-container "rect")
         (.attr "id" (fn [_ i] (str "bar" i)))
         (.attr "fill-opacity" "0")
         (.attr "x" (partial bar-chart-x-val single-width start-pos))
