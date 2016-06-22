@@ -93,6 +93,19 @@
     (partial fully-classified-transaction class-spec)
     csv-data))
 
+(defn sorted-rows [rows sort-column]
+  (sort-by
+    (fn [{:keys [columns] :as row}]
+      (let [sc (get columns sort-column)
+            {:keys [day year month]} sc]
+        (if (or
+              (nil? day)
+              (nil? year)
+              (nil? month))
+          sc
+          (format "%04d%02d%02d" year month day))))
+    rows))
+
 (defn load-parsed-csv-data [spec-file data-folder]
   (let [{:keys [classifications
                 tid-column
@@ -102,4 +115,5 @@
     (-> (load-csv data-folder)
         (with-columns columns)
         (with-tids tids tid-column)
-        (with-classification classifications))))
+        (with-classification classifications)
+        (sorted-rows sort-column ))))
