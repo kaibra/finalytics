@@ -1,3 +1,5 @@
 "18.05.2016";"-16,13";"baz";"  Thank you says clienta"
 "12.05.2016";"100000,1122";"baf";"  This is a clientb transaction"
+"11.05.2016";"-1000";"buf again";"  This is a clientb transaction one more time"
+"11.05.2016";"1000";"buf";"  This is a clientb transaction"
 "10.05.2016";"-100,11";"buf";"  unknown-stuff"

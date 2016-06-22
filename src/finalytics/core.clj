@@ -10,9 +10,8 @@
 (def custom-states
   [#'server/server
    #'csv-loader/csv-data
-   #'csv-loader/spec-folder
+   #'csv-loader/spec-file
    #'csv-loader/data-folder
-
    ])
 
 (defn start []

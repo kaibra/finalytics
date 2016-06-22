@@ -38,7 +38,7 @@
        (parse-csv-data lines sep)
        (recur (rest all-files) (into lines (read-csv-lines (first all-files))))))))
 
-(defn- to-column [column-spec content]
+(defn- to-row-with-column [column-spec content]
   (when-not (nil? column-spec)
     (if-not (vector? column-spec)
       [column-spec content]
@@ -53,23 +53,14 @@
                                 :month (t/month pdate)
                                 :day (t/day pdate)})])))))
 
-(defn load-columns-spec [data-spec-file]
-  (->> (slurp data-spec-file)
-       (edn/read-string {:readers {'locale eval}})))
-
-(defn load-tid-spec [file-path]
-  (->> (edn/read-string (slurp file-path))
-      (map (fn [[pattern classification]] [(re-pattern pattern) classification]))
-      (into {})))
-
 
 (def col-key :columns)
 (def tid-key :tid)
 
 (defn with-columns [csv-data column-names]
   (map
-    (fn [transaction]
-      {col-key (->> (map to-column column-names transaction) (into {}))})
+    (fn [row]
+      {col-key (->> (map to-row-with-column column-names row) (into {}))})
     csv-data))
 
 (defn tid-transaction [tid-specs tid-col transaction]
@@ -78,15 +69,12 @@
       (if (empty? specs)
         transaction
         (let [[c-pattern classification-name] (first specs)]
-          (if-not (nil? (re-matches c-pattern ct-val))
+          (if-not (nil? (re-matches (re-pattern c-pattern) ct-val))
             (assoc transaction :tid classification-name)
             (recur (rest specs))))))))
 
 (defn with-tids [csv-data tid-specs tid-col]
   (map (partial tid-transaction tid-specs tid-col) csv-data))
-
-(defn load-class-spec [file-path]
-  (edn/read-string (slurp file-path)))
 
 (defn classify-transaction [[classification-name tids] {:keys [tid] :as transaction}]
   (if (some #(= tid %) tids)
@@ -105,11 +93,13 @@
     (partial fully-classified-transaction class-spec)
     csv-data))
 
-(defn load-parsed-csv-data [spec-folder data-folder]
-  (let [col-spec (load-columns-spec (str spec-folder "/columns.edn"))
-        tid-spec (load-tid-spec (str spec-folder "/tids.edn"))
-        class-spec (load-class-spec (str spec-folder "/classifications.edn"))]
+(defn load-parsed-csv-data [spec-file data-folder]
+  (let [{:keys [classifications
+                tid-column
+                sort-column
+                tids
+                columns]} (edn/read-string {:readers {'locale eval}} (slurp spec-file)) ]
     (-> (load-csv data-folder)
-        (with-columns col-spec)
-        (with-tids tid-spec :client)
-        (with-classification class-spec))))
+        (with-columns columns)
+        (with-tids tids tid-column)
+        (with-classification classifications))))

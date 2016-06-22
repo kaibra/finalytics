@@ -30,7 +30,7 @@
          [:input {:type "text" :class "form-control" :value @csvload/data-folder :name "csv-folder" :id "csv-folder"}]]
         [:div {:class "row"}
          [:label {:for "spec-folder"} "spec-folder"]
-         [:input {:type "text" :class "form-control" :value @csvload/spec-folder :name "spec-folder" :id "spec-folder"}]]
+         [:input {:type "text" :class "form-control" :value @csvload/spec-file :name "spec-folder" :id "spec-folder"}]]
         [:div {:class "row"}
          [:br]
          [:button {:type "submit" :class "btn btn-default"} "Load folders"]]]]

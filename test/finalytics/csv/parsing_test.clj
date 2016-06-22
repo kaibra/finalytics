@@ -43,21 +43,31 @@
 (deftest to-special-columns
   (testing "should build up columns from column-spec"
     (let [csv-data (csv-pars/load-csv "test-resources/data/csv-b")]
-      (is (= [{:columns {:a {:year 2016
+      (is (= [{:columns {:a {:day   11
                              :month 5
-                             :day 18}
+                             :year  2016}
+                         :b 1000.0
+                         :d "This is a clientb transaction"}}
+              {:columns {:a {:day   18
+                             :month 5
+                             :year  2016}
                          :b -16.13
                          :d "Thank you says clienta"}}
-              {:columns {:a {:year 2016
+              {:columns {:a {:day   12
                              :month 5
-                             :day 12}
+                             :year  2016}
                          :b 100000.1122
                          :d "This is a clientb transaction"}}
-              {:columns {:a {:year 2016
+              {:columns {:a {:day   10
                              :month 5
-                             :day 10}
+                             :year  2016}
                          :b -100.11
-                         :d "unknown-stuff"}}]
+                         :d "unknown-stuff"}}
+              {:columns {:a {:day   11
+                             :month 5
+                             :year  2016}
+                         :b -1000.0
+                         :d "This is a clientb transaction one more time"}}]
              (csv-pars/with-columns csv-data
                                     [[:a {:type   :date
                                           :format "dd.MM.yyyy"}]
@@ -103,34 +113,17 @@
                                                      :c "bazz"}}]
                                          {:asian-food  [:mister-foo]})))))
 
-(deftest loading-the-column-spec
-  (testing "should load the column spec"
-    (is (= [[:a
-             {:format "dd.MM.yyyy"
-              :type   :date}]
-            [:b
-             {:locale Locale/GERMAN
-              :type   :number}]
-            nil
-            :client]
-           (csv-pars/load-columns-spec "test-resources/data/spec/columns.edn")))))
-
-(deftest loading-the-tid-spec
-  (testing "should load the tid spec"
-    (is (= [:clienta :clientb]
-           (vals (csv-pars/load-tid-spec "test-resources/data/spec/tids.edn"))))))
-
-(deftest loading-the-classification-spec
-  (testing "should load the classification spec"
-    (is (= {:food [:clienta
-                   :clientb]
-            :gas  [:clienta]}
-           (csv-pars/load-class-spec "test-resources/data/spec/classifications.edn")))))
-
-
 (deftest loading-complete-parsed-csv-data
   (testing "should load the whole test-data set"
-    (is (= [{:classifications [:gas :food]
+    (is (= [{:classifications [:food]
+             :columns         {:a      {:day   11
+                                        :month 5
+                                        :year  2016}
+                               :b      1000.0
+                               :client "This is a clientb transaction"}
+             :tid             :clientb}
+            {:classifications [:gas
+                               :food]
              :columns         {:a      {:day   18
                                         :month 5
                                         :year  2016}
@@ -148,5 +141,12 @@
                                 :month 5
                                 :year  2016}
                        :b      -100.11
-                       :client "unknown-stuff"}}]
-           (csv-pars/load-parsed-csv-data "test-resources/data/spec" "test-resources/data/csv-b")))))
+                       :client "unknown-stuff"}}
+            {:classifications [:food]
+             :columns         {:a      {:day   11
+                                        :month 5
+                                        :year  2016}
+                               :b      -1000.0
+                               :client "This is a clientb transaction one more time"}
+             :tid             :clientb}]
+           (csv-pars/load-parsed-csv-data "test-resources/data/spec.edn" "test-resources/data/csv-b")))))
