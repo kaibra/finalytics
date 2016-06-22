@@ -1,0 +1,13 @@
+{:columns         [[:a {:type   :date
+                        :format "dd.MM.yyyy"}]
+                   [:b {:type   :number
+                        :locale #locale java.util.Locale/GERMAN}]
+                   nil
+                   :client]
+ :tid-column      :client
+ :sort-column     :a
+ :classifications {:food [:clienta :clientb]
+                   :gas  [:clienta]}
+ :tids            {"^.*clienta.*" :clienta
+                   "^.*clientb.*" :clientb}}
+
