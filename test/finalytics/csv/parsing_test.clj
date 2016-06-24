@@ -111,90 +111,154 @@
                                           {:columns {:a "fOoo"
                                                      :b "barr"
                                                      :c "bazz"}}]
-                                         {:asian-food  [:mister-foo]})))))
+                                         {:asian-food [:mister-foo]})))))
 
 (deftest sorting-rows
   (testing "should sort rows by date-sort-column"
-    (is (= [{:columns {:a      {:day   1
-                                :month 5
-                                :year  2015}}}
-            {:columns {:a      {:day   10
-                                :month 5
-                                :year  2016}}}
-            {:columns {:a      {:day   15
-                                :month 5
-                                :year  2016}}}
-            {:columns {:a      {:day   11
-                                :month 10
-                                :year  2016}}}
-            {:columns {:a      {:day   1
-                                :month 1
-                                :year  2017}}}]
-           (csv-pars/sorted-rows [{:columns {:a      {:day   15
-                                                      :month 5
-                                                      :year  2016}}}
-                                  {:columns {:a      {:day   11
-                                                      :month 10
-                                                      :year  2016}}}
-                                  {:columns {:a      {:day   1
-                                                      :month 5
-                                                      :year  2015}}}
-                                  {:columns {:a      {:day   1
-                                                      :month 1
-                                                      :year  2017}}}
-                                  {:columns {:a      {:day   10
-                                                      :month 5
-                                                      :year  2016}}}]
+    (is (= [{:columns {:a {:day   1
+                           :month 5
+                           :year  2015}}}
+            {:columns {:a {:day   10
+                           :month 5
+                           :year  2016}}}
+            {:columns {:a {:day   15
+                           :month 5
+                           :year  2016}}}
+            {:columns {:a {:day   11
+                           :month 10
+                           :year  2016}}}
+            {:columns {:a {:day   1
+                           :month 1
+                           :year  2017}}}]
+           (csv-pars/sorted-rows [{:columns {:a {:day   15
+                                                 :month 5
+                                                 :year  2016}}}
+                                  {:columns {:a {:day   11
+                                                 :month 10
+                                                 :year  2016}}}
+                                  {:columns {:a {:day   1
+                                                 :month 5
+                                                 :year  2015}}}
+                                  {:columns {:a {:day   1
+                                                 :month 1
+                                                 :year  2017}}}
+                                  {:columns {:a {:day   10
+                                                 :month 5
+                                                 :year  2016}}}]
                                  :a))))
 
   (testing "should sort other columns with default behaviour"
-    (is (= [{:columns {:a      "A"}}
-            {:columns {:a      "B"}}
-            {:columns {:a      "C"}}
-            {:columns {:a      "D"}}
-            {:columns {:a      "E"}}]
-           (csv-pars/sorted-rows [{:columns {:a      "B"}}
-                                  {:columns {:a      "D"}}
-                                  {:columns {:a      "A"}}
-                                  {:columns {:a      "C"}}
-                                  {:columns {:a      "E"}}]
+    (is (= [{:columns {:a "A"}}
+            {:columns {:a "B"}}
+            {:columns {:a "C"}}
+            {:columns {:a "D"}}
+            {:columns {:a "E"}}]
+           (csv-pars/sorted-rows [{:columns {:a "B"}}
+                                  {:columns {:a "D"}}
+                                  {:columns {:a "A"}}
+                                  {:columns {:a "C"}}
+                                  {:columns {:a "E"}}]
                                  :a)))
     ))
 
 (deftest loading-complete-parsed-csv-data
   (testing "should load the whole test-data set"
-    (is (= [{:columns {:a      {:day   10
-                                :month 5
-                                :year  2016}
-                       :b      -100.11
-                       :client "unknown-stuff"}}
-            {:classifications [:food]
-             :columns         {:a      {:day   11
-                                        :month 5
-                                        :year  2016}
-                               :b      1000.0
-                               :client "This is a clientb transaction"}
-             :tid             :clientb}
-            {:classifications [:food]
-             :columns         {:a      {:day   11
-                                        :month 5
-                                        :year  2016}
-                               :b      -1000.0
-                               :client "This is a clientb transaction one more time"}
-             :tid             :clientb}
-            {:classifications [:food]
-             :columns         {:a      {:day   12
-                                        :month 5
-                                        :year  2016}
-                               :b      100000.1122
-                               :client "This is a clientb transaction"}
-             :tid             :clientb}
-            {:classifications [:gas
-                               :food]
-             :columns         {:a      {:day   18
-                                        :month 5
-                                        :year  2016}
-                               :b      -16.13
-                               :client "Thank you says clienta"}
-             :tid             :clienta}]
+    (is (= {2016 {5 {10 [{:columns {:a      {:day   10
+                                             :month 5
+                                             :year  2016}
+                                    :b      -100.11
+                                    :client "unknown-stuff"}}]
+                     11 [{:classifications [:food]
+                          :columns         {:a      {:day   11
+                                                     :month 5
+                                                     :year  2016}
+                                            :b      1000.0
+                                            :client "This is a clientb transaction"}
+                          :tid             :clientb}
+                         {:classifications [:food]
+                          :columns         {:a      {:day   11
+                                                     :month 5
+                                                     :year  2016}
+                                            :b      -1000.0
+                                            :client "This is a clientb transaction one more time"}
+                          :tid             :clientb}]
+                     12 [{:classifications [:food]
+                          :columns         {:a      {:day   12
+                                                     :month 5
+                                                     :year  2016}
+                                            :b      100000.1122
+                                            :client "This is a clientb transaction"}
+                          :tid             :clientb}]
+                     18 [{:classifications [:gas :food]
+                          :columns         {:a      {:day   18
+                                                     :month 5
+                                                     :year  2016}
+                                            :b      -16.13
+                                            :client "Thank you says clienta"}
+                          :tid             :clienta}]}}}
            (csv-pars/load-parsed-csv-data "test-resources/data/spec.edn" "test-resources/data/csv-b")))))
+
+(deftest grouping-by-time
+  (testing "should group entries by their time"
+    (is (= {2015 {5 {1 [{:columns {:date {:day   1
+                                          :month 5
+                                          :year  2015}}}]}
+                  6 {1 [{:columns {:date {:day   1
+                                          :month 6
+                                          :year  2015}}}]}}
+            2016 {2 {2 [{:columns {:date {:day   2
+                                          :month 2
+                                          :year  2016}}}
+                        {:columns {:date {:day   2
+                                          :month 2
+                                          :year  2016}}}]}
+                  3 {2 [{:columns {:date {:day   2
+                                          :month 3
+                                          :year  2016}}}]}
+                  7 {10 [{:columns {:date {:day   10
+                                           :month 7
+                                           :year  2016}}}]}}}
+           (csv-pars/group-by-date-column
+             [{:columns {:date {:day   1
+                                :month 5
+                                :year  2015}}}
+              {:columns {:date {:day   1
+                                :month 6
+                                :year  2015}}}
+              {:columns {:date {:day   2
+                                :month 2
+                                :year  2016}}}
+              {:columns {:date {:day   2
+                                :month 2
+                                :year  2016}}}
+              {:columns {:date {:day   2
+                                :month 3
+                                :year  2016}}}
+              {:columns {:date {:day   10
+                                :month 7
+                                :year  2016}}}]
+             :date)))))
+
+
+(deftest grouping-lists
+  (testing "should group lists at any depth "
+    (let [input {123 [{:columns {:date {:day   1
+                                        :month 5
+                                        :year  2015}}}
+                      {:columns {:date {:day   1
+                                        :month 6
+                                        :year  2015}}}]}]
+      (is (= {123 {1 [{:columns {:date {:day   1
+                                        :month 5
+                                        :year  2015}}}
+                      {:columns {:date {:day   1
+                                        :month 6
+                                        :year  2015}}}]}}
+             (csv-pars/group-data-by input [:columns :date :day])))
+      (is (= {123 {5 [{:columns {:date {:day   1
+                                        :month 5
+                                        :year  2015}}}]
+                   6 [{:columns {:date {:day   1
+                                        :month 6
+                                        :year  2015}}}]}}
+             (csv-pars/group-data-by input [:columns :date :month]))))))

@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [clj-time.format :as f]
             [clj-time.core :as t]
+            [clojure.walk :as wlk]
             [clojure.edn :as edn])
   (:import (java.text NumberFormat)))
 
@@ -49,9 +50,9 @@
                                    (.doubleValue))]
           :string [column-name content]
           :date [column-name (let [pdate (f/parse (f/formatter format) content)]
-                               {:year (t/year pdate)
+                               {:year  (t/year pdate)
                                 :month (t/month pdate)
-                                :day (t/day pdate)})])))))
+                                :day   (t/day pdate)})])))))
 
 
 (def col-key :columns)
@@ -106,14 +107,33 @@
           (format "%04d%02d%02d" year month day))))
     rows))
 
+
+(defn group-data-by [data the-path]
+  (wlk/postwalk
+    (fn [d]
+      (if (and
+            (coll? d)
+            (not (nil? (:columns (first d)))))
+        (group-by #(get-in % the-path) d)
+        d))
+    data))
+
+(defn group-by-date-column [rows date-column]
+  (let [date-path [:columns date-column]]
+    (-> rows
+        (group-data-by (conj date-path :year))
+        (group-data-by (conj date-path :month))
+        (group-data-by (conj date-path :day)))))
+
 (defn load-parsed-csv-data [spec-file data-folder]
   (let [{:keys [classifications
                 tid-column
-                sort-column
+                date-column
                 tids
-                columns]} (edn/read-string {:readers {'locale eval}} (slurp spec-file)) ]
+                columns]} (edn/read-string {:readers {'locale eval}} (slurp spec-file))]
     (-> (load-csv data-folder)
         (with-columns columns)
         (with-tids tids tid-column)
         (with-classification classifications)
-        (sorted-rows sort-column ))))
+        (sorted-rows date-column)
+        (group-by-date-column date-column))))

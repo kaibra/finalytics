@@ -5,7 +5,7 @@
                    nil
                    :client]
  :tid-column      :client
- :sort-column     :a
+ :date-column     :a
  :classifications {:food [:clienta :clientb]
                    :gas  [:clienta]}
  :tids            {"^.*clienta.*" :clienta
