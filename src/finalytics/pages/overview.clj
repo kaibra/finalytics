@@ -6,8 +6,14 @@
     [finalytics.csv.csv-loader :as csvload]))
 
 (defn csv-data-stats []
-  [:div
-   "Nr. transactions: " (count csvload/csv-data) [:br]])
+  (let [meta-info (:meta-data csvload/csv-data)]
+    [:div
+     "Nr. transactions: " (:nr-transactions meta-info) [:br]
+     "Max. val per day: " (:max-per-day meta-info) [:br]
+     "Max. abs per day: " (:max-abs-per-day meta-info) [:br]
+     "Max-withdrawal-per-day: " (:max-withdrawal-per-day meta-info) [:br]
+     "Max-receival-per-day: " (:max-receival-per-day meta-info) [:br]
+     ]))
 
 (defn overview-body [& {:keys [error]}]
   (html/html-response

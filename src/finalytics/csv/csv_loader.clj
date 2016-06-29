@@ -10,7 +10,9 @@
 
 (defn load-csv-data []
   (log/info "-> loading csv-data")
-  (pars/load-parsed-csv-data @spec-file @data-folder))
+  (let [csv-data (pars/load-parsed-csv-data @spec-file @data-folder)]
+    {:csv-data csv-data
+     :meta-data (pars/meta-data csv-data)}))
 
 (defstate csv-data :start (load-csv-data))
 

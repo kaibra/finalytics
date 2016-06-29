@@ -108,12 +108,18 @@
     rows))
 
 
+(defn data-item? [item]
+  (not (nil? (:columns item))))
+
+(defn data-item-seq? [d]
+  (and
+    (coll? d)
+    (data-item? (first d))))
+
 (defn group-data-by [data the-path]
   (wlk/postwalk
     (fn [d]
-      (if (and
-            (coll? d)
-            (not (nil? (:columns (first d)))))
+      (if (data-item-seq? d)
         (group-by #(get-in % the-path) d)
         d))
     data))
@@ -124,6 +130,43 @@
         (group-data-by (conj date-path :year))
         (group-data-by (conj date-path :month))
         (group-data-by (conj date-path :day)))))
+
+(defn meta-data [data]
+  (let [nr-transactions (atom 0)
+        max-per-day (atom 0)
+        max-abs-per-day (atom 0)
+        max-withdrawal-per-day (atom 0)
+        max-receival-per-day (atom 0)]
+    (wlk/postwalk
+      (fn [d]
+        (when (data-item-seq? d)
+          (swap! nr-transactions + (count d))
+          (let [total-sum (->> (map #(get-in % [:columns :value]) d)
+                               (apply +))
+                receival-sum (->> (map #(get-in % [:columns :value]) d)
+                                  (filter #(>= 0 %))
+                                  (apply +))
+                withdrawal-sum (->> (map #(get-in % [:columns :value]) d)
+                                    (filter #(< 0 %))
+                                    (apply +))]
+            (when (> total-sum @max-per-day)
+              (reset! max-per-day total-sum))
+
+            (when (> (Math/abs total-sum) @max-abs-per-day)
+              (reset! max-abs-per-day (Math/abs total-sum)))
+
+            (when (> withdrawal-sum @max-receival-per-day)
+              (reset! max-receival-per-day withdrawal-sum))
+
+            (when (> (Math/abs receival-sum) @max-withdrawal-per-day)
+              (reset! max-withdrawal-per-day (Math/abs receival-sum)))))
+        d)
+      data)
+    {:max-per-day            @max-per-day
+     :max-abs-per-day        @max-abs-per-day
+     :max-withdrawal-per-day @max-withdrawal-per-day
+     :max-receival-per-day   @max-receival-per-day
+     :nr-transactions        @nr-transactions}))
 
 (defn load-parsed-csv-data [spec-file data-folder]
   (let [{:keys [classifications

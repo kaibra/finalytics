@@ -262,3 +262,38 @@
                                         :month 6
                                         :year  2015}}}]}}
              (csv-pars/group-data-by input [:columns :date :month]))))))
+
+
+(deftest meta-data
+  (testing "should create meta-data"
+    (is (= {:max-abs-per-day        100
+            :max-per-day            22
+            :max-receival-per-day   22
+            :max-withdrawal-per-day 100
+            :nr-transactions        6}
+           (csv-pars/meta-data
+             {2015 {5 {1 [{:columns {:date  {:day   1
+                                             :month 5
+                                             :year  2015}
+                                     :value 1}}]}
+                    6 {1 [{:columns {:date  {:day   1
+                                             :month 6
+                                             :year  2015}
+                                     :value 1}}]}}
+              2016 {2 {2 [{:columns {:date  {:day   2
+                                             :month 2
+                                             :year  2016}
+                                     :value 11}}
+                          {:columns {:date  {:day   2
+                                             :month 2
+                                             :year  2016}
+                                     :value 11}}]}
+                    3 {2 [{:columns {:date  {:day   2
+                                             :month 3
+                                             :year  2016}
+                                     :value 1}}]}
+                    7 {10 [{:columns {:date  {:day   10
+                                              :month 7
+                                              :year  2016}
+                                      :value -100}}]}}}
+             )))))

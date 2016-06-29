@@ -1,14 +1,12 @@
 (ns finalytics.charts.barchart
-  (:require cljsjs.d3))
+  (:require cljsjs.d3
+            [cljs.reader :as edn]))
 
-(defn max-val [csv-data]
-  (let [items (map (fn [d] (Math/abs d/columns.value)) csv-data)]
-    (apply max items)))
-
-(defn d3YScale [max-value half-height]
-  (-> (js/d3.scale.linear)
-      (.domain (array (- max-value) max-value))
-      (.range (array (- half-height) half-height))))
+(defn d3YScale [max-value drawing-height]
+  (let [half-drawing-height (/ drawing-height 2)]
+    (-> (js/d3.scale.linear)
+        (.domain (array (- max-value) max-value))
+        (.range (array (- half-drawing-height) half-drawing-height)))))
 
 (defn add-svg-background [svg-container]
   (-> svg-container
@@ -17,78 +15,74 @@
       (.attr "width" "100%")
       (.attr "height" "100%")))
 
-(defn append-svg-container [selector [width height]]
-  (doto (-> (js/d3.select selector)
+(defn append-svg-container [container [width height]]
+  (doto (-> container
             (.append "svg")
-            (.attr "width" width)
-            (.attr "height" height))
+            (.attr "width" "100%")
+            (.attr "height" "100%")
+            (.attr "viewBox" (str "0 0 " width " " height)))
     (add-svg-background)))
 
-(defn bind-data [svg-container csv-data]
-  (-> (.selectAll svg-container "div")
-      (.data csv-data)))
+(defn bar-chart-sort [transactions]
+  (let [positive (filter #(>= (get-in % [:columns :value]) 0) transactions)
+        negative (filter #(< (get-in % [:columns :value]) 0) transactions)]
+    (concat
+      (reverse
+        (sort-by #(get-in % [:columns :value]) positive))
+      (sort-by #(get-in % [:columns :value]) negative))))
 
-(defn on-enter [svg-container append-fn & args]
-  (-> (.enter svg-container)
-      (append-fn args)))
+(defn append-daydata [day transactions bar-width drawing-height svg-container yscale]
+  (let [x (* (- day 1) bar-width)]
+    (loop [the-transactions (bar-chart-sort transactions)
+           positive-offset 0
+           negativ-offset 0]
+      (when-not (empty? the-transactions)
+        (let [{:keys [columns]} (first the-transactions)
+              the-val (yscale (:value columns))
+              y (if (< the-val 0)
+                  (+ (/ drawing-height 2) negativ-offset)
+                  (- (/ drawing-height 2) positive-offset the-val))
+              group-container (.append svg-container "g")]
+          (-> (.append group-container "rect")
+              (.attr "x" x)
+              (.attr "y" y)
+              (.attr "style" "fill:rgb(0,0,255);stroke-width:1;stroke:rgb(0,0,0)")
+              (.attr "data-val" columns)
+              (.attr "width" bar-width)
+              (.attr "height" (Math/abs the-val)))
+          (if (< the-val 0)
+            (recur (rest the-transactions) positive-offset (+ negativ-offset (Math/abs the-val)))
+            (recur (rest the-transactions) (+ positive-offset the-val) negativ-offset))
+          )))))
 
-(defn bar-chart-y-val [half-height y-scale [_ y-start] d i]
-  (+ y-start
-     (- half-height (Math/max 0 (y-scale d/columns.value)))))
+(defn with-missing-days-as-empty [days]
+  (loop [all-days (range 1 32)
+         result days]
+    (if (empty? all-days)
+      result
+      (if (nil? (get result (first all-days)))
+        (recur (rest all-days) (assoc result (first all-days) []))
+        (recur (rest all-days) result)))))
 
-(defn bar-chart-x-val [single-width [x-start _] d i]
-  (+ x-start (* i single-width)))
+(defn bar-chart [raw-data]
+  (let [{:keys [csv-data meta-data]} (edn/read-string raw-data)
+        {:keys [max-withdrawal-per-day max-receival-per-day]} meta-data
+        bar-width 40
+        chart-width (* 31 bar-width)
+        top-bottom-space 50
+        drawing-height 500
+        chart-height (+ drawing-height (* 2 top-bottom-space))
+        yscale (d3YScale (max max-receival-per-day max-withdrawal-per-day) drawing-height)]
+    (doseq [[year months] csv-data]
+      (let [year-container (-> (js/d3.select "#barchart")
+                               (.append "div")
+                               (.attr "width" "100%")
+                               (.attr "height" "100%"))]
+        (doseq [[month days] months]
+          (let [month-container (-> (.append year-container "div") (.attr "width" "100%") (.attr "height" "100%"))
+                _ (-> (.append month-container "h3") (.html (str year "/" month)))
+                svg-container (append-svg-container month-container [chart-width chart-height])]
+            (doseq [[day transactions] (with-missing-days-as-empty days)]
+              (append-daydata day transactions bar-width chart-height svg-container yscale))))))))
 
-(defn bar-chart-text-transformation [half-height single-width y-scale font-size start-pos d i]
-  (let [the-val d/columns.value
-        the-val-scaled (y-scale the-val)
-        x-val (+ (bar-chart-x-val single-width start-pos d i) (* (- single-width font-size) (/ 4 5)))
-        y-val (bar-chart-y-val half-height y-scale start-pos d i)
-        y-val (if (< the-val 0)
-                (- y-val the-val-scaled)
-                y-val)]
-    (str "translate(" x-val "," y-val ")rotate(90)")))
-
-(defn transaction-as-single-line [d]
-  (loop [k (cljs.core/js-keys d/columns)
-         result ""]
-    (let [current-field (first k)]
-      (if (empty? k)
-        result
-        (recur (rest k)
-               (str result (str " "current-field ": " (aget d/columns current-field))))))))
-
-(defn append-barchart-rect [single-width half-height yscale start-pos svg-container]
-  (let [group-container (.append svg-container "g")
-        font-size (* single-width (/ 2 3))]
-    (-> (.append group-container "rect")
-        (.attr "x" (partial bar-chart-x-val single-width start-pos))
-        (.attr "y" (partial bar-chart-y-val half-height yscale start-pos))
-        (.attr "width" single-width)
-        (.attr "height" (fn [d _] (Math/abs (yscale d/columns.value)))))
-
-    (-> (.append group-container "text")
-        (.attr "fill" "white")
-        (.attr "font-size" font-size)
-        (.attr "transform" (partial bar-chart-text-transformation half-height single-width yscale font-size start-pos))
-        (.html (fn [d _] d/columns.value)))))
-
-(defn draw-data [svg-container csv-data & {:keys [data-dim start-pos]}]
-  (let [[width height] data-dim
-        single-width (int (/ width (count csv-data)))
-        half-height (int (/ height 2))
-        yscale (d3YScale (max-val csv-data) half-height)]
-    (-> (bind-data svg-container csv-data)
-        (on-enter (partial append-barchart-rect single-width half-height yscale start-pos)))))
-
-(defn bar-chart [csv-data]
-  (let [bar-width 20
-        svg-width (* (count csv-data) bar-width)
-        svg-height 400
-        top-bottom-space 100
-        svg-container (append-svg-container "#barchart" [svg-width svg-height])]
-    (println svg-width)
-    (draw-data svg-container csv-data
-               :data-dim [svg-width (- svg-height top-bottom-space)]
-               :start-pos [0 (/ top-bottom-space 2)])))
 

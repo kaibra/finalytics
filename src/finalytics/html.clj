@@ -14,7 +14,7 @@
              :content    "text/html; charset=UTF8"}]]
     [:body
      content
-     [:script (str "var csvdata = " (json/write-str loader/csv-data))]
+     [:script (str "var csvdata = '" (.replaceAll (str loader/csv-data) "'" "")"'")]
      (hic/include-js "js/main.js")
      ]))
 

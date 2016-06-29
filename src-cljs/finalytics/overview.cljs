@@ -8,7 +8,6 @@
 
 (defn register-all-listeners []
   (println "Register all")
-  (println js/csvdata)
 
   (bc/bar-chart js/csvdata))
 
