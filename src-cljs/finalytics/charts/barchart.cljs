@@ -93,12 +93,12 @@
         axis-height (/ bar-width 3)
         chart-height (+ drawing-height (* 2 top-bottom-space) axis-height)
         yscale (d3YScale (max max-receival-per-day max-withdrawal-per-day) drawing-height)]
-    (doseq [[year months] csv-data]
+    (doseq [[year months] (reverse (sort csv-data))]
       (let [year-container (-> (js/d3.select "#barchart")
                                (.append "div")
                                (.attr "width" "100%")
                                (.attr "height" "100%"))]
-        (doseq [[month days] months]
+        (doseq [[month days] (reverse (sort months))]
           (let [month-container (-> (.append year-container "div") (.attr "width" "100%") (.attr "height" "100%"))
                 _ (-> (.append month-container "h3") (.html (str year "/" month)))
                 svg-container (append-svg-container month-container [chart-width chart-height])]
