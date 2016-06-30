@@ -77,9 +77,11 @@
 (defn with-tids [csv-data tid-specs tid-col]
   (map (partial tid-transaction tid-specs tid-col) csv-data))
 
-(defn classify-transaction [[classification-name tids] {:keys [tid] :as transaction}]
+(defn classify-transaction [[classification-name {:keys [tids color]}] {:keys [tid] :as transaction}]
   (if (some #(= tid %) tids)
-    (update transaction :classifications conj classification-name)
+    (-> transaction
+        (assoc :classification classification-name)
+        (assoc :color color))
     transaction))
 
 (defn fully-classified-transaction [class-spec transaction]

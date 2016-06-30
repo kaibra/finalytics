@@ -96,7 +96,8 @@
 
 (deftest with-classifications
   (testing "should add classifications to rows"
-    (is (= [{:classifications [:asian-food]
+    (is (= [{:classification :asian-food
+             :color "#abcdef"
              :columns         {:a "foo"
                                :b "bar"
                                :c "baz"}
@@ -111,7 +112,8 @@
                                           {:columns {:a "fOoo"
                                                      :b "barr"
                                                      :c "bazz"}}]
-                                         {:asian-food [:mister-foo]})))))
+                                         {:asian-food {:tids [:mister-foo]
+                                                       :color "#abcdef"}})))))
 
 (deftest sorting-rows
   (testing "should sort rows by date-sort-column"
@@ -168,28 +170,32 @@
                                              :year  2016}
                                     :b      -100.11
                                     :client "unknown-stuff"}}]
-                     11 [{:classifications [:food]
+                     11 [{:classification :food
+                          :color          "#123456"
                           :columns         {:a      {:day   11
                                                      :month 5
                                                      :year  2016}
                                             :b      1000.0
                                             :client "This is a clientb transaction"}
                           :tid             :clientb}
-                         {:classifications [:food]
+                         {:classification :food
+                          :color          "#123456"
                           :columns         {:a      {:day   11
                                                      :month 5
                                                      :year  2016}
                                             :b      -1000.0
                                             :client "This is a clientb transaction one more time"}
                           :tid             :clientb}]
-                     12 [{:classifications [:food]
+                     12 [{:classification :food
+                          :color          "#123456"
                           :columns         {:a      {:day   12
                                                      :month 5
                                                      :year  2016}
                                             :b      100000.1122
                                             :client "This is a clientb transaction"}
                           :tid             :clientb}]
-                     18 [{:classifications [:gas :food]
+                     18 [{:classification :gas
+                          :color          "#000000"
                           :columns         {:a      {:day   18
                                                      :month 5
                                                      :year  2016}

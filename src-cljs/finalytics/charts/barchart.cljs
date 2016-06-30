@@ -37,7 +37,8 @@
            positive-offset 0
            negativ-offset 0]
       (when-not (empty? the-transactions)
-        (let [{:keys [columns]} (first the-transactions)
+        (let [{:keys [columns color]} (first the-transactions)
+              the-color (or color "rgb(0,0,255)")
               the-val (yscale (:value columns))
               y (if (< the-val 0)
                   (+ (/ drawing-height 2) negativ-offset)
@@ -46,7 +47,7 @@
           (-> (.append group-container "rect")
               (.attr "x" x)
               (.attr "y" y)
-              (.attr "style" "fill:rgb(0,0,255);stroke-width:1;stroke:rgb(0,0,0)")
+              (.attr "style" (str "fill: " the-color ";stroke-width:1;stroke:rgb(0,0,0)"))
               (.attr "data-val" columns)
               (.attr "width" bar-width)
               (.attr "height" (Math/abs the-val)))

@@ -6,8 +6,10 @@
                    :client]
  :tid-column      :client
  :date-column     :a
- :classifications {:food [:clienta :clientb]
-                   :gas  [:clienta]}
+ :classifications {:food {:tids  [:clientb]
+                          :color "#123456"}
+                   :gas  {:tids  [:clienta]
+                          :color "#000000"}}
  :tids            {"^.*clienta.*" :clienta
                    "^.*clientb.*" :clientb}}
 
