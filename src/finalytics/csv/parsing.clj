@@ -58,24 +58,35 @@
 (def col-key :columns)
 (def tid-key :tid)
 
+(defn- column [transaction col-name]
+  (get-in transaction [col-key col-name]))
+
 (defn with-columns [csv-data column-names]
   (map
     (fn [row]
       {col-key (->> (map to-row-with-column column-names row) (into {}))})
     csv-data))
 
-(defn tid-transaction [tid-specs tid-col transaction]
-  (let [ct-val (get-in transaction [col-key tid-col])]
-    (loop [specs tid-specs]
-      (if (empty? specs)
-        transaction
-        (let [[c-pattern classification-name] (first specs)]
-          (if-not (nil? (re-matches (re-pattern c-pattern) ct-val))
-            (assoc transaction :tid classification-name)
-            (recur (rest specs))))))))
+(defn transaction-matches-tid-spec? [transaction tid-spec]
+  (every?
+    (fn [[tid-col tid-regex]]
+      (let [col-val (column transaction tid-col)
+            mtaching-result (re-matches (re-pattern tid-regex) col-val)]
+        (not
+          (nil? mtaching-result))))
+    tid-spec))
 
-(defn with-tids [csv-data tid-specs tid-col]
-  (map (partial tid-transaction tid-specs tid-col) csv-data))
+(defn tid-transaction [tid-specs transaction]
+  (loop [specs tid-specs]
+    (if (empty? specs)
+      transaction
+      (let [[tid-spec classification-name] (first specs)]
+        (if (transaction-matches-tid-spec? transaction tid-spec)
+          (assoc transaction :tid classification-name)
+          (recur (rest specs)))))))
+
+(defn with-tids [csv-data tid-specs]
+  (map (partial tid-transaction tid-specs) csv-data))
 
 (defn classify-transaction [[classification-name {:keys [tids color]}] {:keys [tid] :as transaction}]
   (if (some #(= tid %) tids)
@@ -172,13 +183,12 @@
 
 (defn load-parsed-csv-data [spec-file data-folder]
   (let [{:keys [classifications
-                tid-column
                 date-column
                 tids
                 columns]} (edn/read-string {:readers {'locale eval}} (slurp spec-file))]
     (-> (load-csv data-folder)
         (with-columns columns)
-        (with-tids tids tid-column)
+        (with-tids tids)
         (with-classification classifications)
         (sorted-rows date-column)
         (group-by-date-column date-column))))

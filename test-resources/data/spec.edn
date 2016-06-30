@@ -4,12 +4,12 @@
                         :locale #locale java.util.Locale/GERMAN}]
                    nil
                    :client]
- :tid-column      :client
  :date-column     :a
+ :tids            {{:client "^.*clienta.*"} :clienta
+                   {:client "^.*clientb.*"} :clientb}
  :classifications {:food {:tids  [:clientb]
                           :color "#123456"}
                    :gas  {:tids  [:clienta]
-                          :color "#000000"}}
- :tids            {"^.*clienta.*" :clienta
-                   "^.*clientb.*" :clientb}}
+                          :color "#000000"}}}
+
 

@@ -77,31 +77,51 @@
                                      :d]))))))
 
 (deftest with-tids
+  (testing "should check if transaction matches tid-spec"
+    (is (= true
+           (csv-pars/transaction-matches-tid-spec? {:columns {:a "foo"
+                                                              :b "123bar!"
+                                                              :c "baz"}}
+                                                   {:a #".*foo.*"
+                                                    :b #".*bar!"})))
+    (is (= false
+           (csv-pars/transaction-matches-tid-spec? {:columns {:a "foo"
+                                                              :b "123bar!"
+                                                              :c "baz"}}
+                                                   {:a #".*foo.*"
+                                                    :b #".*bar"})))
+    (is (= true
+           (csv-pars/transaction-matches-tid-spec? {:columns {:a "fOoo"
+                                                              :b "barr"
+                                                              :c "bazz"}}
+                                                   {:c #"bazz"}))))
   (testing "should add tids to rows"
     (is (= [{:columns {:a "foo"
-                       :b "bar"
+                       :b "123bar!"
                        :c "baz"}
              :tid     :mister-foo}
             {:columns {:a "fOoo"
                        :b "barr"
-                       :c "bazz"}}]
+                       :c "bazz"}
+             :tid     :mister-zzz}]
            (csv-pars/with-tids [{:columns {:a "foo"
-                                           :b "bar"
+                                           :b "123bar!"
                                            :c "baz"}}
                                 {:columns {:a "fOoo"
                                            :b "barr"
                                            :c "bazz"}}]
-                               {#".*foo.*" :mister-foo}
-                               :a)))))
+                               {{:a #".*foo.*"
+                                 :b #".*bar!"} :mister-foo
+                                {:c #"bazz"}   :mister-zzz})))))
 
 (deftest with-classifications
   (testing "should add classifications to rows"
     (is (= [{:classification :asian-food
-             :color "#abcdef"
-             :columns         {:a "foo"
-                               :b "bar"
-                               :c "baz"}
-             :tid             :mister-foo}
+             :color          "#abcdef"
+             :columns        {:a "foo"
+                              :b "bar"
+                              :c "baz"}
+             :tid            :mister-foo}
             {:columns {:a "fOoo"
                        :b "barr"
                        :c "bazz"}}]
@@ -112,7 +132,7 @@
                                           {:columns {:a "fOoo"
                                                      :b "barr"
                                                      :c "bazz"}}]
-                                         {:asian-food {:tids [:mister-foo]
+                                         {:asian-food {:tids  [:mister-foo]
                                                        :color "#abcdef"}})))))
 
 (deftest sorting-rows
@@ -172,36 +192,36 @@
                                     :client "unknown-stuff"}}]
                      11 [{:classification :food
                           :color          "#123456"
-                          :columns         {:a      {:day   11
-                                                     :month 5
-                                                     :year  2016}
-                                            :b      1000.0
-                                            :client "This is a clientb transaction"}
-                          :tid             :clientb}
+                          :columns        {:a      {:day   11
+                                                    :month 5
+                                                    :year  2016}
+                                           :b      1000.0
+                                           :client "This is a clientb transaction"}
+                          :tid            :clientb}
                          {:classification :food
                           :color          "#123456"
-                          :columns         {:a      {:day   11
-                                                     :month 5
-                                                     :year  2016}
-                                            :b      -1000.0
-                                            :client "This is a clientb transaction one more time"}
-                          :tid             :clientb}]
+                          :columns        {:a      {:day   11
+                                                    :month 5
+                                                    :year  2016}
+                                           :b      -1000.0
+                                           :client "This is a clientb transaction one more time"}
+                          :tid            :clientb}]
                      12 [{:classification :food
                           :color          "#123456"
-                          :columns         {:a      {:day   12
-                                                     :month 5
-                                                     :year  2016}
-                                            :b      100000.1122
-                                            :client "This is a clientb transaction"}
-                          :tid             :clientb}]
+                          :columns        {:a      {:day   12
+                                                    :month 5
+                                                    :year  2016}
+                                           :b      100000.1122
+                                           :client "This is a clientb transaction"}
+                          :tid            :clientb}]
                      18 [{:classification :gas
                           :color          "#000000"
-                          :columns         {:a      {:day   18
-                                                     :month 5
-                                                     :year  2016}
-                                            :b      -16.13
-                                            :client "Thank you says clienta"}
-                          :tid             :clienta}]}}}
+                          :columns        {:a      {:day   18
+                                                    :month 5
+                                                    :year  2016}
+                                           :b      -16.13
+                                           :client "Thank you says clienta"}
+                          :tid            :clienta}]}}}
            (csv-pars/load-parsed-csv-data "test-resources/data/spec.edn" "test-resources/data/csv-b")))))
 
 (deftest grouping-by-time
