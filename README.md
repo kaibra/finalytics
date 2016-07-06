@@ -72,6 +72,8 @@ Colors are used from your *spec.edn*
 * **run** task  which compiles cljs->js before start
 * remove main.js after **run** task has been implemented
 * uberjar which can be started + configured
+* lein ancient as dep + updated deps + deps-status visible here
+* travis tests visible in this file
 
 ## Contributor
 
