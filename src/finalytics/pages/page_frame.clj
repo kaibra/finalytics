@@ -8,10 +8,11 @@
    [:div {:class "container-fluid"}
     [:div {:class "navbar-header"}
 
-     [:button {:type           "button" :class "navbar-toggle collapsed"
-               :data-toggle=   "collapse"
-               :data-target=   "#bs-example-navbar-collapse-1"
-               :aria-expanded= "false"}
+     [:button {:type          "button"
+               :class         "navbar-toggle collapsed"
+               :data-toggle   "collapse"
+               :data-target   "#bs-example-navbar-collapse-1"
+               :aria-expanded "false"}
       [:span {:class "sr-only"} "Toggle navigation"]
       [:span {:class "icon-bar"}]
       [:span {:class "icon-bar"}]
@@ -26,12 +27,12 @@
         [:span {:class "sr-only"} "(current)"]]]
 
       [:li {:class "dropdown"}
-       [:a {:href           "#"
-            :class          "dropdown-toggle"
-            :data-toggle    "dropdown"
-            :role           "button"
-            :aria-haspopup= "true"
-            :aria-expanded= "false"} "Bar-Charts" [:span {:class "caret"}]]
+       [:a {:href          "#"
+            :class         "dropdown-toggle"
+            :data-toggle   "dropdown"
+            :role          "button"
+            :aria-haspopup "true"
+            :aria-expanded "false"} "Bar-Charts" [:span {:class "caret"}]]
        [:ul {:class "dropdown-menu"}
         [:li [:a {:href "bar-chart"} "Simple Bar Chart"]]
         ]]]]]])
