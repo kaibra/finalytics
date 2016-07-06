@@ -51,7 +51,7 @@ Colors are used from your *spec.edn*
                                   :color "#123456"}
                            :gas  {:tids  [:clienta]
                                   :color "#000000"}}}
-        ```
+    ```
         
     * **columns**: a vector of columns-specifications. Types: *Date*, *Number*, *String* or *nil* for ignoring a column
     * **date-column**: points to the name of the column which holds the transaction date
