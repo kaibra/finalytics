@@ -1,0 +1,27 @@
+{:columns         [[:tdate {:type   :date
+                            :format "dd.MM.yyyy"}]
+                   [:value {:type   :number
+                            :locale #locale java.util.Locale/GERMAN}]
+                   :client
+                   :desription]
+ :date-column     :tdate
+ :tids            {{:client "^.*tesco.*"}                :tesco
+                   {:client "^.*sainsburys.*"}           :sainsburys
+                   {:client "^.*gas station.*"}          :gas
+                   {:client "^.*tesla.*"}                :tesla
+                   {:client "^.*lottery.*"}              :lottery
+                   {:client "^.*fromage.*"}              :fromage
+                   {:client "^.*baker.*"}                :baker
+                   {:client "^.*ships ag.*"}                :ships-ag
+                   {:client "^.*expensive housing ag.*"} :rent
+                   }
+ :classifications {:food        {:tids  [:baker :tesco :sainsburys]
+                                 :color "#7fbf7f"}
+                   :energy      {:tids  [:tesla :gas]
+                                 :color "#999999"}
+                   :ships      {:tids  [:ships-ag]
+                                 :color "#121289"}
+                   :housing     {:tids  [:rent]
+                                 :color "#ffa500"}
+                   :happy-times {:tids  [:lottery :fromage]
+                                 :color "#ffff7f"}}}

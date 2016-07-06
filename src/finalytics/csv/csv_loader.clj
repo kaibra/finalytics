@@ -5,8 +5,8 @@
     [clojure.tools.logging :as log]
     [mount.core :as mount]))
 
-(defstate spec-file :start (atom "data/spec.edn"))
-(defstate data-folder :start (atom "data/csv"))
+(defstate spec-file :start (atom "test-resources/demo-data/spec.edn"))
+(defstate data-folder :start (atom "test-resources/demo-data/csv"))
 
 (defn load-csv-data []
   (log/info "-> loading csv-data")
