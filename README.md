@@ -68,6 +68,10 @@ Colors are used from your *spec.edn*
 * some crazy chart for the classifications
 * fancy d3 stuff
 * cljs-tests
+* refactor meta-data function
+* **run** task  which compiles cljs->js before start
+* remove main.js after **run** task has been implemented
+* uberjar which can be started + configured
 
 ## Contributor
 
