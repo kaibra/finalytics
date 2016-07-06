@@ -56,6 +56,7 @@ Colors are used from your *spec.edn*
     * **date-column**: points to the name of the column which holds the transaction date
     * **tids**: used for transaction identification (regex-query-map -> tid)
     * **classification**: groupings of tids (e.g. supermarkets -> \[tesco, sainsburys\])
+    
 4. Start the application with 'lein run'
 5. Open http://localhost:8080/csv-config in a browser
 6. Specify csv-folder and your spec-file location
