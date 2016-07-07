@@ -84,9 +84,8 @@
       )
   )
 
-(defn bar-chart [{:keys [csv-data meta-data]}]
-  (let [{:keys [max-withdrawal-per-day max-receival-per-day]} meta-data
-        drawing-height 500
+(defn bar-chart [container csv-data {:keys [max-withdrawal-per-day max-receival-per-day]}]
+  (let [drawing-height 500
         bar-width (/ drawing-height 10)
         chart-width (* 31 bar-width)
         top-bottom-space 50
@@ -94,7 +93,7 @@
         chart-height (+ drawing-height (* 2 top-bottom-space) axis-height)
         yscale (d3YScale (max max-receival-per-day max-withdrawal-per-day) drawing-height)]
     (doseq [[year months] (reverse (sort csv-data))]
-      (let [year-container (-> (js/d3.select "#barchart")
+      (let [year-container (-> container
                                (.append "div")
                                (.attr "width" "100%")
                                (.attr "height" "100%"))]
