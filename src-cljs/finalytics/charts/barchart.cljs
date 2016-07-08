@@ -73,7 +73,7 @@
   (let [bconf (bar-chart-conf meta-data)]
     (utils/render-chart
       container csv-data
-      (fn [container {:keys [days]}]
+      (fn [_ container {:keys [days]}]
         (let [svg-container (utils/append-svg-container container bconf)]
           (append-x-axis svg-container bconf)
           (doseq [day-entry (utils/with-missing-days-as-empty days)]

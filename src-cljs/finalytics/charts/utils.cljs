@@ -23,18 +23,31 @@
         (.domain (array (- max-value) max-value))
         (.range (array (- half-drawing-height) half-drawing-height)))))
 
-(defn append-div [c]
-  (-> (.append c "div") (.attr "width" "100%") (.attr "height" "100%")))
+(defn insert-div [c]
+  (-> (.insert c "div" ":first-child") (.attr "width" "100%") (.attr "height" "100%")))
+
+(defn append-month-headline [month-container year month]
+  (-> (.append month-container "h3")
+      (.html (str year "/" month))))
+
+(defn render-months [last-year-result year-container render-chart-fn year months]
+  (loop [last-month-result last-year-result
+         data (sort months)]
+    (when-let [[month days] (first data)]
+      (let [month-container (insert-div year-container)]
+        (append-month-headline month-container year month)
+        (-> (render-chart-fn
+              last-month-result
+              month-container
+              {:year  year
+               :month month
+               :days  days})
+            (recur (rest data)))))))
 
 (defn render-chart [container csv-data render-chart-fn]
-  (doseq [[year months] (reverse (sort csv-data))]
-    (let [year-container (append-div container)]
-      (doseq [[month days] (reverse (sort months))]
-        (let [month-container (append-div year-container)]
-          (-> (.append month-container "h3") (.html (str year "/" month)))
-          (render-chart-fn
-            month-container
-            {:year  year
-             :month month
-             :days  days}))))))
-
+  (loop [last-result nil
+         data (sort csv-data)]
+    (when-let [[year months] (first data)]
+      (let [year-container (insert-div container)]
+        (-> (render-months last-result year-container render-chart-fn year months)
+            (recur (rest data)))))))

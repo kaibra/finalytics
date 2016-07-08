@@ -28,7 +28,7 @@ Colors are used from your *spec.edn*
 ### Waterfall-chart
 ![Waterfall-chart](doc/waterfall-chart.png)  
 The waterfall-chart visualizes each transaction after another. Each bar of a transaction is painted at the position of the current total balance.
-The chart for a month always starts with 0 as balance.
+A waterfall-chart of a month starts at the balance from the end of previous month and at 0 if it is the first month rendered.
 
 ## Technologies used
 

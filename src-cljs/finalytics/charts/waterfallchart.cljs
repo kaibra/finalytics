@@ -38,11 +38,12 @@
       (.attr "width" chart-width)
       (.attr "height" 1)))
 
-(defn render-waterfall [svg-container {:keys [waterfall-range bar-width chart-height chart-width yscale]}]
+(defn render-waterfall [svg-container last-month-result {:keys [waterfall-range bar-width chart-height chart-width yscale]}]
   (append-x-axis svg-container chart-height chart-width)
   (loop [the-range waterfall-range
-         last-axis-pos (/ chart-height 2)]
-    (when-not (empty? the-range)
+         last-axis-pos (or last-month-result (/ chart-height 2))]
+    (if (empty? the-range)
+      last-axis-pos
       (let [{:keys [pos transaction]} (first the-range)
             {:keys [columns color]} transaction
             transaction-value (yscale (get-in transaction [:columns :value]))
@@ -62,8 +63,8 @@
 (defn waterfall-chart [container csv-data _]
   (utils/render-chart
     container csv-data
-    (fn [c {:keys [days]}]
+    (fn [last-month-result c {:keys [days]}]
       (let [all-transactions (flatten (vals days))
             cconf (waterfall-chart-conf all-transactions)
             svg-container (utils/append-svg-container c cconf)]
-        (render-waterfall svg-container cconf)))))
+        (render-waterfall svg-container last-month-result cconf)))))
