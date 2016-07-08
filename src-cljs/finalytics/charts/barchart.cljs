@@ -1,19 +1,6 @@
 (ns finalytics.charts.barchart
   (:require cljsjs.d3
-            [cljs.reader :as edn]))
-
-(defn d3YScale [max-value drawing-height]
-  (let [half-drawing-height (/ drawing-height 2)]
-    (-> (js/d3.scale.linear)
-        (.domain (array (- max-value) max-value))
-        (.range (array (- half-drawing-height) half-drawing-height)))))
-
-(defn append-svg-container [container [width height]]
-  (-> container
-      (.append "svg")
-      (.attr "width" "100%")
-      (.attr "height" "100%")
-      (.attr "viewBox" (str "0 0 " width " " height))))
+            [finalytics.chart.utils :as utils]))
 
 (defn bar-chart-sort [transactions]
   (let [positive (filter #(>= (get-in % [:columns :value]) 0) transactions)
@@ -29,17 +16,14 @@
       (.attr "height" axis-height)
       (.attr "x" (+ x (/ bar-width 2)))
       (.attr "y" axis-pos)
-      (.attr "text-anchor"  "middle")
-      (.attr "alignment-baseline"  "central")
+      (.attr "text-anchor" "middle")
+      (.attr "alignment-baseline" "central")
       (.attr "style" (str "font-size:" (* axis-height (/ 4 5)) "px"))
-      (.html day)
-      )
+      (.html day)))
 
-  )
-
-(defn append-daydata [day transactions bar-width drawing-height svg-container yscale axis-height]
+(defn append-daydata [svg-container [day transactions] {:keys [bar-width chart-height yscale axis-height]}]
   (let [x (* (- day 1) bar-width)
-        axis-pos (/ drawing-height 2)]
+        axis-pos (/ chart-height 2)]
     (loop [the-transactions (bar-chart-sort transactions)
            positive-offset 0
            negativ-offset 0]
@@ -61,48 +45,36 @@
               (.attr "height" (Math/abs the-val)))
           (if (< the-val 0)
             (recur (rest the-transactions) positive-offset (+ negativ-offset (Math/abs the-val)))
-            (recur (rest the-transactions) (+ positive-offset the-val) negativ-offset))
-          )))))
+            (recur (rest the-transactions) (+ positive-offset the-val) negativ-offset)))))))
 
-(defn with-missing-days-as-empty [days]
-  (loop [all-days (range 1 32)
-         result days]
-    (if (empty? all-days)
-      result
-      (if (nil? (get result (first all-days)))
-        (recur (rest all-days) (assoc result (first all-days) []))
-        (recur (rest all-days) result)))))
-
-(defn append-x-axis [svg-container chart-width chart-height axis-height]
+(defn append-x-axis [svg-container {:keys [chart-width chart-height axis-height]}]
   (-> (.append svg-container "rect")
       (.attr "x" 0)
       (.attr "y" (- (/ chart-height 2) (/ axis-height 2)))
       (.attr "width" chart-width)
       (.attr "height" axis-height)
       (.attr "fill-opacity" 0)
-      (.attr "style" "stroke-width:1;stroke:rgb(0,0,0)")
-      )
-  )
+      (.attr "style" "stroke-width:1;stroke:rgb(0,0,0)")))
 
-(defn bar-chart [container csv-data {:keys [max-withdrawal-per-day max-receival-per-day]}]
+(defn bar-chart-conf [{:keys [max-withdrawal-per-day max-receival-per-day]}]
   (let [drawing-height 500
-        bar-width (/ drawing-height 10)
-        chart-width (* 31 bar-width)
         top-bottom-space 50
-        axis-height (/ bar-width 3)
-        chart-height (+ drawing-height (* 2 top-bottom-space) axis-height)
-        yscale (d3YScale (max max-receival-per-day max-withdrawal-per-day) drawing-height)]
-    (doseq [[year months] (reverse (sort csv-data))]
-      (let [year-container (-> container
-                               (.append "div")
-                               (.attr "width" "100%")
-                               (.attr "height" "100%"))]
-        (doseq [[month days] (reverse (sort months))]
-          (let [month-container (-> (.append year-container "div") (.attr "width" "100%") (.attr "height" "100%"))
-                _ (-> (.append month-container "h3") (.html (str year "/" month)))
-                svg-container (append-svg-container month-container [chart-width chart-height])]
-            (append-x-axis svg-container chart-width chart-height axis-height)
-            (doseq [[day transactions] (with-missing-days-as-empty days)]
-              (append-daydata day transactions bar-width chart-height svg-container yscale axis-height))))))))
+        bar-width (/ drawing-height 10)
+        axis-height (/ bar-width 3)]
+    {:drawing-height   drawing-height
+     :bar-width        bar-width
+     :chart-width      (* 31 bar-width)
+     :chart-height     (+ drawing-height (* 2 top-bottom-space) axis-height)
+     :top-bottom-space top-bottom-space
+     :axis-height      axis-height
+     :yscale           (utils/d3YScale (max max-receival-per-day max-withdrawal-per-day) drawing-height)}))
 
-
+(defn bar-chart [container csv-data meta-data]
+  (let [bconf (bar-chart-conf meta-data)]
+    (utils/render-chart
+      container csv-data
+      (fn [container {:keys [days]}]
+        (let [svg-container (utils/append-svg-container container bconf)]
+          (append-x-axis svg-container bconf)
+          (doseq [day-entry (utils/with-missing-days-as-empty days)]
+            (append-daydata svg-container day-entry bconf)))))))

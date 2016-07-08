@@ -6,7 +6,7 @@
 
 (def chart-spec
   [["#barchart" bc/bar-chart]
-   ["#waterfallchart" wc/waterfall-chart]])
+   ["#waterfall" wc/waterfall-chart]])
 
 (defn render-if-container-present [id call-fn & args]
   (when-let [container (js/d3.select id)]

@@ -18,12 +18,17 @@ The aim is, to give you a good overview of what is going on with your money by v
 
 ## Charts
 ### Simple bar-chart
-![Simple bar-chart](doc/finalytics-barchart.png)   
-The simple bar-chart visualizes all transactions from your csv-files.   
-For every day in a given month the withdrawals are stacked and drawn   
-underneath, the incoming money transactions are stacked and drawn  
+![Simple bar-chart](doc/bar-chart.png)   
+The simple bar-chart visualizes all transactions from your csv-files. 
+For every day in a given month the withdrawals are stacked and drawn 
+underneath, the incoming money transactions are stacked and drawn
 above each day.   
 Colors are used from your *spec.edn*
+
+### Waterfall-chart
+![Waterfall-chart](doc/waterfall-chart.png)  
+The waterfall-chart visualizes each transaction after another. Each bar of a transaction is painted at the position of the current total balance.
+The chart for a month always starts with 0 as balance.
 
 ## Technologies used
 

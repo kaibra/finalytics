@@ -1,7 +1,6 @@
 (ns finalytics.pages.page-frame
   (:require [hiccup.page :as hic]
-            [finalytics.csv.csv-loader :as loader]
-            [finalytics.pages.chart-frame :as cf]))
+            [finalytics.csv.csv-loader :as loader]))
 
 (def responsive-menu-toggle-button
   [:button {:type          "button"
@@ -16,8 +15,8 @@
 
 (def transaction-charts
   [:ul {:class "dropdown-menu"}
-   [:li [:a {:href cf/bar-chart-id} "Simple Bar Chart"]]
-   [:li [:a {:href cf/waterfall-chart-id} "Waterfall Chart"]]])
+   [:li [:a {:href "barchart"} "Simple Bar Chart"]]
+   [:li [:a {:href "waterfall"} "Waterfall Chart"]]])
 
 (defn dropdown-anchor [atxt]
   [:a {:href          "#"
