@@ -20,16 +20,16 @@
 (defn waterfall-chart-conf [all-transactions last-month-result]
   (let [waterfall-range (waterfall-range all-transactions)
         waterfall-value-range (map :waterfall-value waterfall-range)
-        drawing-height 500
-        bar-width (/ drawing-height 10)
-        top-bottom-space 50]
+        chart-height 500
+        chart-width (* chart-height 3)
+        bar-width (/ chart-width (count all-transactions))]
     {:waterfall-range waterfall-range
      :bar-width       bar-width
-     :chart-width     (* bar-width (count all-transactions))
-     :chart-height    (+ drawing-height (* 2 top-bottom-space))
+     :chart-width     chart-width
+     :chart-height    chart-height
      :yscale          (utils/d3YScale (Math/max (Math/abs (+ (apply min waterfall-value-range) last-month-result))
                                                 (Math/abs (+ (apply max waterfall-value-range) last-month-result)))
-                                      drawing-height)}))
+                                      chart-height)}))
 
 (defn append-x-axis [svg-container chart-height chart-width]
   (-> (.append svg-container "rect")
