@@ -69,7 +69,7 @@ A waterfall-chart of a month starts at the balance from the end of previous mont
 7. Click 'Load folders'
 
 ## Upcoming changes / TODOs
-* waterfall-chart
+* waterfall-chart (DONE)
 * some crazy chart for the classifications
 * fancy d3 stuff
 * cljs-tests
@@ -79,6 +79,9 @@ A waterfall-chart of a month starts at the balance from the end of previous mont
 * uberjar which can be started + configured
 * lein ancient as dep + updated deps + deps-status visible here
 * travis tests visible in this file
+* specification of only one folder with csv-files and spec-file
+* data-reload button in navbar
+* clickable bars in all charts with meta-data popup
 
 ## Contributor
 
