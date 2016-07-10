@@ -6,6 +6,7 @@
                  [org.clojure/clojurescript "1.8.51"
                   :exclusions [org.apache.ant/ant]]
 
+                 [com.cemerick/url "0.1.1"]
                  [cljsjs/d3 "3.5.16-0"]
 
                  [org.clojure/tools.logging "0.3.1"]

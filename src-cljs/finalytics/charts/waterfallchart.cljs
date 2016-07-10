@@ -1,10 +1,11 @@
 (ns finalytics.charts.waterfallchart
   (:require cljsjs.d3
+            [cemerick.url :as url]
             [finalytics.chart.utils :as utils]))
 
 (defn waterfall-range [transactions]
   (loop [all-transactions transactions
-         pos 0
+         pos (- (count transactions) 1)
          value-range []]
     (if (empty? all-transactions)
       value-range
@@ -12,23 +13,24 @@
             transaction-value (get-in transaction [:columns :value])
             last-waterfall-value (or (:waterfall-value (last value-range)) 0)]
         (recur (rest all-transactions)
-               (inc pos)
+               (dec pos)
                (conj value-range {:waterfall-value (+ last-waterfall-value transaction-value)
                                   :pos             pos
                                   :transaction     transaction}))))))
 
-(defn waterfall-chart-conf [all-transactions last-month-result]
+(defn waterfall-chart-conf [all-transactions last-balance]
   (let [waterfall-range (waterfall-range all-transactions)
         waterfall-value-range (map :waterfall-value waterfall-range)
         chart-height 500
         chart-width (* chart-height 3)
-        bar-width (/ chart-width (count all-transactions))]
+        bar-width (/ chart-width (count all-transactions))
+        min-val (Math/abs (apply min waterfall-value-range))
+        max-val (Math/abs (apply max waterfall-value-range))]
     {:waterfall-range waterfall-range
      :bar-width       bar-width
      :chart-width     chart-width
      :chart-height    chart-height
-     :yscale          (utils/d3YScale (Math/max (Math/abs (+ (apply min waterfall-value-range) last-month-result))
-                                                (Math/abs (+ (apply max waterfall-value-range) last-month-result)))
+     :yscale          (utils/d3YScale (+ (Math/max min-val max-val) (Math/abs last-balance))
                                       chart-height)}))
 
 (defn append-x-axis [svg-container chart-height chart-width]
@@ -38,21 +40,21 @@
       (.attr "width" chart-width)
       (.attr "height" 1)))
 
-(defn render-waterfall [svg-container last-month-result {:keys [waterfall-range bar-width chart-height chart-width yscale]}]
+(defn render-waterfall [svg-container last-balance {:keys [waterfall-range bar-width chart-height chart-width yscale]}]
   (append-x-axis svg-container chart-height chart-width)
   (loop [the-range waterfall-range
-         last-axis-pos (or last-month-result 0)]
+         current-balance last-balance]
     (if (empty? the-range)
-      last-axis-pos
+      current-balance
       (let [{:keys [pos transaction]} (first the-range)
             {:keys [columns color]} transaction
             transaction-value (get-in transaction [:columns :value])
             transaction-value-scaled (yscale transaction-value)
             the-color (or color "rgb(0,0,255)")
-            last-axis-pos-scaled (- (/ chart-height 2) (yscale last-axis-pos))
+            current-balance-scaled (- (/ chart-height 2) (yscale current-balance))
             y (if (< transaction-value-scaled 0)
-                last-axis-pos-scaled
-                (- last-axis-pos-scaled transaction-value-scaled))]
+                (+ current-balance-scaled transaction-value-scaled)
+                current-balance-scaled)]
         (-> (.append svg-container "rect")
             (.attr "x" (* pos bar-width))
             (.attr "y" y)
@@ -60,13 +62,41 @@
             (.attr "data-val" columns)
             (.attr "width" bar-width)
             (.attr "height" (Math/abs transaction-value-scaled)))
-        (recur (rest the-range) (+ last-axis-pos transaction-value))))))
+        (recur (rest the-range) (- current-balance transaction-value))))))
+
+(defn append-current-balance-form [container]
+  (let [cb-id "currentbalance"
+        current-balance (if-let [cb (get-in (url/url (-> js/window .-location .-href))
+                                            [:query cb-id])]
+                          (js/parseFloat cb)
+                          0)
+        form-container (-> (.append container "form")
+                           (.attr "class" "form-inline")
+                           (.attr "role" "form"))]
+    (doto (-> (.append form-container "div")
+              (.attr "class" "form-group"))
+      (-> (.append "label")
+          (.attr "for" cb-id)
+          (.html "Current balance:"))
+      (-> (.append "input")
+          (.attr "type" "text")
+          (.attr "name" cb-id)
+          (.attr "id" cb-id)
+          (.attr "value" current-balance)
+          (.attr "class" "form-control")))
+    (-> (.append form-container "button")
+        (.attr "type" "submit")
+        (.attr "class" "btn btn-default")
+        (.html "Render charts"))
+    current-balance))
 
 (defn waterfall-chart [container csv-data _]
-  (utils/render-chart
-    container csv-data
-    (fn [last-month-result c {:keys [days]}]
-      (let [all-transactions (flatten (vals days))
-            cconf (waterfall-chart-conf all-transactions last-month-result)
-            svg-container (utils/append-svg-container c cconf)]
-        (render-waterfall svg-container last-month-result cconf)))))
+  (let [current-balance (append-current-balance-form container)]
+    (utils/render-chart
+      container csv-data
+      (fn [last-month-start-balance c {:keys [year month days]}]
+        (let [last-balance (or last-month-start-balance current-balance)
+              all-transactions (reverse (flatten (vals days)))
+              cconf (waterfall-chart-conf all-transactions last-balance)
+              svg-container (utils/append-svg-container c cconf)]
+          (render-waterfall svg-container last-balance cconf))))))
