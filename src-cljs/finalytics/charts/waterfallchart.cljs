@@ -3,7 +3,7 @@
             [cemerick.url :as url]
             [finalytics.chart.utils :as utils]))
 
-(defn waterfall-range [transactions]
+(defn waterfall-range [transactions last-balance]
   (loop [all-transactions transactions
          pos (- (count transactions) 1)
          value-range []]
@@ -11,26 +11,27 @@
       value-range
       (let [transaction (first all-transactions)
             transaction-value (get-in transaction [:columns :value])
-            last-waterfall-value (or (:waterfall-value (last value-range)) 0)]
+            last-waterfall-value (or (:waterfall-value (last value-range)) last-balance)]
         (recur (rest all-transactions)
                (dec pos)
-               (conj value-range {:waterfall-value (+ last-waterfall-value transaction-value)
+               (conj value-range {:waterfall-value (- last-waterfall-value transaction-value)
                                   :pos             pos
                                   :transaction     transaction}))))))
 
 (defn waterfall-chart-conf [all-transactions last-balance]
-  (let [waterfall-range (waterfall-range all-transactions)
+  (let [waterfall-range (waterfall-range all-transactions last-balance)
         waterfall-value-range (map :waterfall-value waterfall-range)
         chart-height 500
         chart-width (* chart-height 3)
         bar-width (/ chart-width (count all-transactions))
-        min-val (Math/abs (apply min waterfall-value-range))
-        max-val (Math/abs (apply max waterfall-value-range))]
+        min-val (apply min waterfall-value-range)
+        max-val (apply max waterfall-value-range)
+        max-scale (Math/max (Math/abs min-val) (Math/abs max-val))]
     {:waterfall-range waterfall-range
      :bar-width       bar-width
      :chart-width     chart-width
      :chart-height    chart-height
-     :yscale          (utils/d3YScale (+ (Math/max min-val max-val) (Math/abs last-balance))
+     :yscale          (utils/d3YScale max-scale
                                       chart-height)}))
 
 (defn append-x-axis [svg-container chart-height chart-width]
